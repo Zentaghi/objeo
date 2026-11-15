@@ -81,6 +81,8 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 @keyframes pop{from{opacity:0;transform:scale(.5) rotate(-12deg)}to{opacity:1;transform:none}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){#splash img,#splash b,#splash p{animation:none}}
+.ico{overflow:hidden}.ico img{width:100%;height:100%;object-fit:cover}
+#sug{display:grid;gap:6px}#sug .chip{text-align:left;border-radius:14px;white-space:normal}
 </style>
 </head>
 <body>
@@ -110,10 +112,10 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 <div class="seg"><label><input type="radio" name="t" value="p" checked><span>😢 Perdu</span></label><label><input type="radio" name="t" value="t"><span>🎉 Trouvé</span></label></div>
 <label>Quel objet ?<input id="pn" required placeholder="Ex. Trousseau de clés"></label>
 <label>Catégorie<select id="pc"><option>Clés</option><option>Papiers</option><option>Sacs</option><option>Électronique</option><option>Autre</option></select></label>
-<label>Description<textarea rows="3" placeholder="Couleur, marque, petit détail qui le rend unique…"></textarea></label>
-<label>Une photo 📷<input type="file" accept="image/*"></label>
-<label>Quand ?<input type="date" required></label>
-<label>Où ?<input id="pw" required placeholder="Quartier, rue, lieu précis"></label>
+<label>Description<textarea id="pt" rows="3" placeholder="Couleur, marque, petit détail qui le rend unique…"></textarea></label>
+<label>Une photo 📷<input id="pf" type="file" accept="image/*"></label>
+<label>Quand ?<input id="pd" type="date" required></label>
+<label>Où ?<input id="pw" required autocomplete="off" placeholder="Numéro, rue, ville…"></label><div id="sug"></div>
 <button class="btn w">Publier mon annonce</button>
 <div class="ok" id="ok1">C’est publié ! On croise les doigts 🤞</div>
 </form>
@@ -169,18 +171,24 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 <button data-v="compte"><span>👤</span>Compte</button>
 </div></nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
+// ====== CONFIG SUPABASE : colle ici l'URL et la clé publique (anon) de ton projet ======
+var SB_URL="",SB_KEY="";
+// Si ces deux champs sont vides, l'appli tourne en mode démo (données locales).
+var sb=(SB_URL&&SB_KEY&&window.supabase)?window.supabase.createClient(SB_URL,SB_KEY):null;
 var S={city:"",user:null,acc:{},ads:[]},V=["accueil","explorer","signaler","points","compte","apropos","messages"],cat="Tout",all=false,mode="new";
 var C=["Tout","Clés","Papiers","Sacs","Électronique","Autre"];
 var D=[["p","🔑","Trousseau de clés","Rouen","Clés","Près de la gare · 12 nov."],["t","👛","Portefeuille noir","Lyon","Papiers","Place Bellecour · 13 nov."],["p","🎒","Sac à dos bleu","Caen","Sacs","Tram T1 · 10 nov."],["t","🎧","Écouteurs sans fil","Paris","Électronique","Parc des Buttes-Chaumont · 14 nov."],["p","📱","Téléphone portable","Rouen","Électronique","Campus · 11 nov."],["t","🪪","Carte étudiante","Marseille","Papiers","Bibliothèque · 12 nov."]];
 try{var l=JSON.parse(localStorage.getItem("objeo"));if(l)S=l}catch(e){}
+if(sb){S.user=null;S.msgs=[];S.ads=[];S.acc={};D=[]}
 D.forEach(function(d,i){d[6]="demo";d[7]="d"+i});S.msgs=S.msgs||[];
-function save(){try{localStorage.setItem("objeo",JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem("objeo",JSON.stringify(sb?{city:S.city}:S))}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function $(i){return document.getElementById(i)}
 function all_(){return S.ads.concat(D)}
 function near(d){return d[3].toLowerCase()==S.city.toLowerCase()}
-function row(d){return'<div class="card"><div class="ico">'+d[1]+'</div><div><span class="tag '+(d[0]=="p"?"p":"")+'">'+(d[0]=="p"?"Perdu":"Trouvé")+'</span><h3>'+esc(d[2])+'</h3><p>'+esc(d[3])+' · '+esc(d[5])+'</p>'+act(d)+'</div></div>'}
+function row(d){return'<div class="card"><div class="ico">'+(d[8]?'<img src="'+esc(d[8])+'" alt="">':d[1])+'</div><div><span class="tag '+(d[0]=="p"?"p":"")+'">'+(d[0]=="p"?"Perdu":"Trouvé")+'</span><h3>'+esc(d[2])+'</h3><p>'+esc(d[3])+' · '+esc(d[5])+'</p>'+act(d)+'</div></div>'}
 function act(d){return S.user&&d[6]==S.user.email?'<p><b>✅ Ton annonce</b></p>':'<button class="btn sm" data-ct="'+esc(d[7]||"")+'">💬 '+(d[0]=="p"?"Je l’ai trouvé":"C’est à moi")+'</button>'}
 function empty(){return'<div class="empty"><span>🫥</span>Pas encore d’annonce ici.<br>Sois le premier à en publier !</div>'}
 function draw(){var q=$("q").value.toLowerCase();
@@ -199,25 +207,25 @@ function openCity(){$("cityIn").value=S.city;$("cityChips").innerHTML=["Paris","
 $("cityChips").onclick=function(e){if(e.target.dataset.c)$("cityIn").value=e.target.dataset.c};
 function saveCity(){var v=$("cityIn").value.trim();if(!v){$("cityIn").focus();return}S.city=v;save();$("cityOv").classList.remove("on");draw();comp();gate()}
 function gate(){$("gate").innerHTML=S.user?"":'<div class="bn"><p>🔒 Il faut un compte pour publier.</p><button class="btn" onclick="go(\'compte\')">Créer</button></div>';$("pub").style.display=S.user?"grid":"none"}
-function pub(e){e.preventDefault();if(!S.user)return false;var t=document.querySelector("input[name=t]:checked").value;
+function pub(e){e.preventDefault();if(!S.user)return false;if(sb)return pubSb(e);if(!addrOk())return false;var t=document.querySelector("input[name=t]:checked").value;
 var ic={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"}[$("pc").value];
-S.ads.unshift([t,ic,$("pn").value,S.city,$("pc").value,$("pw").value+" · à l’instant",S.user.email,"u"+Date.now()]);save();e.target.reset();$("ok1").style.display="block";draw();return false}
+S.ads.unshift([t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now()]);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();return false}
 async function hs(s){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}catch(e){return s}}
 function comp(){var el=$("v-compte");
-if(S.user){el.innerHTML='<div class="me"><div class="av">😊</div><h2>Salut '+esc(S.user.name)+' !</h2><p class="sub">'+esc(S.user.email)+'<br>📍 '+esc(S.city||"—")+'</p></div><div class="card" onclick="go(\'messages\')" style="cursor:pointer"><div class="ico">💬</div><div><h3>Mes conversations</h3><p>'+nconv()+' conversation(s)</p></div></div><div class="card" onclick="openCity()" style="cursor:pointer"><div class="ico">📍</div><div><h3>Changer de ville</h3><p>Actuellement : '+esc(S.city||"—")+'</p></div></div><div class="card" onclick="go(\'apropos\')" style="cursor:pointer"><div class="ico">💙</div><div><h3>À propos d’Objeo</h3><p>Mission, valeurs, ambition</p></div></div><button class="btn w" style="background:var(--pas);color:var(--acc)" onclick="logout()">Me déconnecter</button>';return}
-el.innerHTML='<div class="me"><div class="av">👤</div><h2>'+(mode=="new"?"Crée ton compte":"Content de te revoir !")+'</h2><p class="sub">Pour publier des annonces et gérer les tiennes. Gratuit, pour toujours.</p></div><form onsubmit="return auth(event)">'+(mode=="new"?'<label>Ton prénom<input id="an" required></label>':'')+'<label>Email<input id="ae" type="email" required autocomplete="email"></label><label>Mot de passe<input id="ap" type="password" required minlength="8" placeholder="8 caractères minimum" autocomplete="'+(mode=="new"?"new-password":"current-password")+'"></label><div class="ok" id="er" style="background:var(--pink);color:var(--pinkt)"></div><button class="btn w">'+(mode=="new"?"Créer mon compte":"Me connecter")+'</button></form><p style="text-align:center"><button class="link" onclick="mode=mode==\'new\'?\'in\':\'new\';comp()">'+(mode=="new"?"J’ai déjà un compte":"Pas encore de compte ? Créer")+'</button></p><p class="note">Mode démo : ton compte reste sur cet appareil. La vraie connexion arrive bientôt.</p>'}
-async function auth(e){e.preventDefault();var em=$("ae").value.trim().toLowerCase(),h=await hs(em+$("ap").value),er=$("er");
+if(S.user){el.innerHTML='<div class="me"><div class="av">😊</div><h2>Salut '+esc(S.user.name)+' !</h2><p class="sub">'+esc(S.user.mail||S.user.email)+'<br>📍 '+esc(S.city||"—")+'</p></div><div class="card" onclick="go(\'messages\')" style="cursor:pointer"><div class="ico">💬</div><div><h3>Mes conversations</h3><p>'+nconv()+' conversation(s)</p></div></div><div class="card" onclick="openCity()" style="cursor:pointer"><div class="ico">📍</div><div><h3>Changer de ville</h3><p>Actuellement : '+esc(S.city||"—")+'</p></div></div><div class="card" onclick="go(\'apropos\')" style="cursor:pointer"><div class="ico">💙</div><div><h3>À propos d’Objeo</h3><p>Mission, valeurs, ambition</p></div></div><button class="btn w" style="background:var(--pas);color:var(--acc)" onclick="logout()">Me déconnecter</button>';return}
+el.innerHTML='<div class="me"><div class="av">👤</div><h2>'+(mode=="new"?"Crée ton compte":"Content de te revoir !")+'</h2><p class="sub">Pour publier des annonces et gérer les tiennes. Gratuit, pour toujours.</p></div><form onsubmit="return auth(event)">'+(mode=="new"?'<label>Ton prénom<input id="an" required></label>':'')+'<label>Email<input id="ae" type="email" required autocomplete="email"></label><label>Mot de passe<input id="ap" type="password" required minlength="8" placeholder="8 caractères minimum" autocomplete="'+(mode=="new"?"new-password":"current-password")+'"></label><div class="ok" id="er" style="background:var(--pink);color:var(--pinkt)"></div><button class="btn w">'+(mode=="new"?"Créer mon compte":"Me connecter")+'</button></form><p style="text-align:center"><button class="link" onclick="mode=mode==\'new\'?\'in\':\'new\';comp()">'+(mode=="new"?"J’ai déjà un compte":"Pas encore de compte ? Créer")+'</button></p>'+(sb?"":'<p class="note">Mode démo : ton compte reste sur cet appareil. La vraie connexion arrive bientôt.</p>')}
+async function auth(e){e.preventDefault();if(sb)return authSb(e);var em=$("ae").value.trim().toLowerCase(),h=await hs(em+$("ap").value),er=$("er");
 if(mode=="new"){if(S.acc[em]){er.textContent="Cet email a déjà un compte.";er.style.display="block";return false}S.acc[em]={name:$("an").value.trim(),h:h};}
 else if(!S.acc[em]||S.acc[em].h!=h){er.textContent="Email ou mot de passe incorrect.";er.style.display="block";return false}
 S.user={name:S.acc[em].name,email:em};save();comp();gate();draw();return false}
-function logout(){S.user=null;save();comp();gate();draw()}
+function logout(){if(sb)sb.auth.signOut();S.user=null;save();comp();gate();draw()}
 var cur=null;
 function findAd(id){return all_().filter(function(d){return d[7]==id})[0]}
 function onCt(e){var b=e.target.closest("[data-ct]");if(!b)return;var d=findAd(b.dataset.ct);if(d){cur=d;openCt()}}
 $("list").onclick=onCt;$("recent").onclick=onCt;
 function openCt(){var d=cur;$("ctT").textContent=(d[0]=="p"?"😢 Perdu : ":"🎉 Trouvé : ")+d[2];$("ctP").textContent=d[3]+" · "+d[5];$("ctOk").style.display="none";$("ctF").style.display=S.user?"grid":"none";$("ctG").style.display=S.user?"none":"block";$("ctX").value="";$("ctOv").classList.add("on")}
 function closeCt(){$("ctOv").classList.remove("on")}
-function sendCt(e){e.preventDefault();var m={ad:cur[7],title:cur[2],to:cur[6],from:S.user.email,name:S.user.name,text:$("ctX").value.trim(),t:Date.now()};m.k=kk(m);S.msgs.push(m);save();demo(m.k,m.to);closeCt();tk=m.k;go("messages");msgs();return false}
+function sendCt(e){e.preventDefault();if(sb)return sendCtSb(e);var m={ad:cur[7],title:cur[2],to:cur[6],from:S.user.email,name:S.user.name,text:$("ctX").value.trim(),t:Date.now()};m.k=kk(m);S.msgs.push(m);save();demo(m.k,m.to);closeCt();tk=m.k;go("messages");msgs();return false}
 var tk=null;
 function kk(m){return m.k||m.ad+"|"+[m.from,m.to].sort().join("|")}
 function convs(){var em=S.user.email,g={},o=[];S.msgs.forEach(function(m){if(m.from!=em&&m.to!=em)return;var k=kk(m);if(!g[k]){g[k]=[];o.push(k)}g[k].push(m)});return o.map(function(k){return{k:k,m:g[k]}}).sort(function(a,b){return b.m[b.m.length-1].t-a.m[a.m.length-1].t})}
@@ -227,19 +235,59 @@ function oname(c){var em=S.user.email,r=c.m.filter(function(m){return m.from!=em
 function demo(k,to){if(to!="demo"||!S.user)return;var em=S.user.email,n=S.msgs.filter(function(m){return kk(m)==k&&m.from=="demo"}).length;if(n>=2)return;
 setTimeout(function(){var b=S.msgs.filter(function(m){return kk(m)==k})[0];S.msgs.push({k:k,ad:b.ad,title:b.title,to:em,from:"demo",name:"Propriétaire (réponse démo)",text:n?"Super, merci ! On se retrouve dans un lieu public ? 😊":"Bonjour ! Peux-tu me décrire un détail de l’objet pour que je vérifie ? 😊",t:Date.now()});save();if(tk==k&&$("v-messages").classList.contains("on")){msgs();window.scrollTo(0,document.body.scrollHeight)}},1600)}
 function hh(t){return new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}
-function reply(e){e.preventDefault();var c=convs().filter(function(c){return c.k==tk})[0];if(!c)return false;var b=c.m[0],m={k:tk,ad:b.ad,title:b.title,to:other(c),from:S.user.email,name:S.user.name,text:$("rx").value.trim(),t:Date.now()};S.msgs.push(m);save();demo(tk,m.to);msgs();window.scrollTo(0,document.body.scrollHeight);return false}
+function reply(e){e.preventDefault();if(sb)return replySb(e);var c=convs().filter(function(c){return c.k==tk})[0];if(!c)return false;var b=c.m[0],m={k:tk,ad:b.ad,title:b.title,to:other(c),from:S.user.email,name:S.user.name,text:$("rx").value.trim(),t:Date.now()};S.msgs.push(m);save();demo(tk,m.to);msgs();window.scrollTo(0,document.body.scrollHeight);return false}
 $("v-messages").onclick=function(e){var b=e.target.closest("[data-k]");if(b){tk=b.dataset.k;msgs();window.scrollTo(0,document.body.scrollHeight)}};
 function msgs(){var el=$("v-messages");if(!S.user){el.innerHTML='<div class="empty"><span>🔒</span>Connecte-toi pour voir tes messages.</div>';return}
-var em=S.user.email,cs=convs(),note='<p class="note">Mode démo : les conversations restent sur cet appareil. L’échange réel arrive avec le serveur.</p>';
-if(tk){var c=cs.filter(function(c){return c.k==tk})[0];if(c){el.innerHTML='<button class="link" onclick="tk=null;msgs()">← Conversations</button><h2>'+esc(oname(c))+'</h2><p class="sub">À propos de : '+esc(c.m[0].title)+'</p><div>'+c.m.map(function(m){return'<div class="bb '+(m.from==em?"me2":"ot")+'">'+esc(m.text)+'<br><small>'+hh(m.t)+'</small></div>'}).join("")+'</div><form onsubmit="return reply(event)" style="margin-top:14px"><label>Ta réponse<textarea id="rx" rows="2" required placeholder="Écris ton message…"></textarea></label><button class="btn w">Envoyer 💌</button></form>'+note;return}tk=null}
+var em=S.user.email,cs=convs(),note=sb?"":'<p class="note">Mode démo : les conversations restent sur cet appareil. L’échange réel arrive avec le serveur.</p>';
+if(tk){var c=cs.filter(function(c){return c.k==tk})[0];if(c){el.innerHTML='<button class="link" onclick="tk=null;msgs()">← Conversations</button><h2>'+esc(oname(c))+'</h2><p class="sub">À propos de : '+esc(c.m[0].title)+'</p><div id="adr"></div><div>'+c.m.map(function(m){return'<div class="bb '+(m.from==em?"me2":"ot")+'">'+esc(m.text)+'<br><small>'+hh(m.t)+'</small></div>'}).join("")+'</div><form onsubmit="return reply(event)" style="margin-top:14px"><label>Ta réponse<textarea id="rx" rows="2" required placeholder="Écris ton message…"></textarea></label><button class="btn w">Envoyer 💌</button></form>'+note;if(sb)adr(c.m[0].ad);return}tk=null}
 el.innerHTML='<button class="link" onclick="go(\'compte\')">← Retour</button><h2>Mes conversations 💬</h2><p class="sub">Ton email reste toujours privé.</p>'+(cs.length?cs.map(function(c){var l=c.m[c.m.length-1];return'<div class="card" data-k="'+esc(c.k)+'" style="cursor:pointer"><div class="ico">'+(l.from==em?"📤":"💬")+'</div><div><h3>'+esc(oname(c))+'</h3><p><b>'+esc(l.title)+'</b></p><p>'+esc(l.text.slice(0,60))+'</p></div></div>'}).join(""):'<div class="empty"><span>💬</span>Aucune conversation pour l’instant.<br>Contacte quelqu’un depuis une annonce !</div>')+note}
+var A=null,AF=[],addrErr=false,tmr,ICO={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"};
+function fd(x){return x?new Date(x).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):""}
+/* ---- Adresses : Base Adresse Nationale (IGN) ---- */
+function addrOk(){if(A||addrErr)return true;$("sug").innerHTML='<p class="note" style="color:var(--pinkt)">Choisis une adresse dans la liste 👆</p>';return false}
+$("pw").oninput=function(){A=null;clearTimeout(tmr);var q=this.value.trim();if(q.length<3){$("sug").innerHTML="";return}
+tmr=setTimeout(async function(){try{var r=await fetch("https://data.geopf.fr/geocodage/search?index=address&limit=5&q="+encodeURIComponent(q));if(!r.ok)throw 0;var j=await r.json();addrErr=false;AF=j.features||[];
+$("sug").innerHTML=AF.map(function(f,i){return'<button type="button" class="chip" data-a="'+i+'">📍 '+esc(f.properties.label)+'</button>'}).join("")}catch(x){addrErr=true;$("sug").innerHTML='<p class="note">Adresses indisponibles : tu peux saisir à la main.</p>'}},300)};
+$("sug").onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var f=AF[b.dataset.a],p=f.properties;A={label:p.label,city:p.city,postcode:p.postcode,citycode:p.citycode,lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0]};$("pw").value=p.label;$("sug").innerHTML='<p class="note" style="color:var(--acc)">✅ Adresse vérifiée</p>'};
+/* ---- Supabase ---- */
+function mapAd(a){return[a.kind=="lost"?"p":"t",ICO[a.category]||"📦",a.title,a.city,a.category,fd(a.happened_on),a.user_id,a.id,a.photo_path?sb.storage.from("ad-photos").getPublicUrl(a.photo_path).data.publicUrl:null]}
+async function loadAds(){var r=await sb.from("ads").select("*").eq("status","open").order("created_at",{ascending:false}).limit(200);if(!r.error){D=r.data.map(mapAd);draw()}}
+async function loadMsgs(){if(!S.user)return;var r=await sb.from("messages").select("id,body,created_at,sender_id,conversation_id,profiles:sender_id(name),conversations(ad_id,seeker_id,ads(title,user_id))").order("created_at");if(r.error)return;
+S.msgs=r.data.map(function(m){var c=m.conversations;return{k:m.conversation_id,ad:c.ad_id,title:c.ads.title,to:m.sender_id==c.seeker_id?c.ads.user_id:c.seeker_id,from:m.sender_id,name:(m.profiles&&m.profiles.name)||"Quelqu’un",text:m.body,t:Date.parse(m.created_at)}});if($("v-messages").classList.contains("on"))msgs();comp()}
+async function setUser(u){if(u){var p=await sb.from("profiles").select("name").eq("id",u.id).maybeSingle();S.user={name:(p.data&&p.data.name)||"toi",email:u.id,mail:u.email};await loadMsgs()}else{S.user=null;S.msgs=[]}comp();gate();draw()}
+async function initSb(){await loadAds();var s=await sb.auth.getSession();await setUser(s.data.session&&s.data.session.user);
+sb.auth.onAuthStateChange(function(ev,ss){if(ev=="SIGNED_IN"||ev=="SIGNED_OUT")setTimeout(function(){setUser(ss&&ss.user)},0)});
+sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},function(){loadMsgs()}).on("postgres_changes",{event:"INSERT",schema:"public",table:"ads"},loadAds).subscribe()}
+async function authSb(e){e.preventDefault();var em=$("ae").value.trim().toLowerCase(),pw=$("ap").value,er=$("er"),r;er.style.display="block";er.style.background="var(--pink)";er.style.color="var(--pinkt)";er.textContent="…";
+r=mode=="new"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:$("an").value.trim()}}}):await sb.auth.signInWithPassword({email:em,password:pw});
+if(r.error){var m=r.error.message;er.textContent=/invalid login/i.test(m)?"Email ou mot de passe incorrect.":/already/i.test(m)?"Cet email a déjà un compte.":m;return false}
+if(!r.data.session){er.style.background="var(--sun)";er.style.color="var(--ink)";er.textContent="Vérifie ta boîte mail pour confirmer ton compte 📬";return false}
+er.style.display="none";return false}
+function shrink(f){return new Promise(function(res,rej){var im=new Image();im.onload=function(){var k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(function(b){b?res(b):rej(new Error("Photo illisible"))},"image/jpeg",.8)};im.onerror=function(){rej(new Error("Photo illisible"))};im.src=URL.createObjectURL(f)})}
+async function pubSb(e){e.preventDefault();if(!addrOk())return false;var b=e.target.querySelector("button.btn.w"),ok=$("ok1");b.disabled=true;
+try{var f=$("pf").files[0],path=null;
+if(f){path=S.user.email+"/"+crypto.randomUUID()+".jpg";var u=await sb.storage.from("ad-photos").upload(path,await shrink(f),{contentType:"image/jpeg"});if(u.error)throw u.error}
+var t=document.querySelector("input[name=t]:checked").value,a=A||{city:S.city,label:$("pw").value};
+var r=await sb.from("ads").insert({kind:t=="p"?"lost":"found",title:$("pn").value.trim(),category:$("pc").value,description:$("pt").value.trim()||null,photo_path:path,city:a.city,citycode:a.citycode||null,approx_lat:a.lat?Math.round(a.lat*100)/100:null,approx_lon:a.lon?Math.round(a.lon*100)/100:null,happened_on:$("pd").value}).select("id").single();
+if(r.error)throw r.error;
+var p=await sb.from("ad_private").insert({ad_id:r.data.id,address_label:a.label,lat:a.lat||null,lon:a.lon||null});if(p.error)throw p.error;
+e.target.reset();A=null;$("sug").innerHTML="";ok.style.background="";ok.textContent="C’est publié ! On croise les doigts 🤞";ok.style.display="block";loadAds()}
+catch(x){ok.style.background="var(--pink)";ok.textContent="Oups : "+(x.message||"erreur");ok.style.display="block"}
+b.disabled=false;return false}
+async function sendCtSb(e){e.preventDefault();var b=e.target.querySelector("button"),txt=$("ctX").value.trim();b.disabled=true;
+try{var c=await sb.from("conversations").select("id").eq("ad_id",cur[7]).eq("seeker_id",S.user.email).maybeSingle();if(c.error)throw c.error;var id=c.data&&c.data.id;
+if(!id){var n=await sb.from("conversations").insert({ad_id:cur[7]}).select("id").single();if(n.error)throw n.error;id=n.data.id}
+var m=await sb.from("messages").insert({conversation_id:id,body:txt});if(m.error)throw m.error;
+await loadMsgs();closeCt();tk=id;go("messages");msgs()}catch(x){alert("Oups : "+x.message)}b.disabled=false;return false}
+async function replySb(e){e.preventDefault();var r=await sb.from("messages").insert({conversation_id:tk,body:$("rx").value.trim()});if(r.error){alert("Oups : "+r.error.message);return false}await loadMsgs();window.scrollTo(0,document.body.scrollHeight);return false}
+async function adr(id){var r=await sb.from("ad_private").select("address_label").eq("ad_id",id).maybeSingle();if(r.data&&$("adr"))$("adr").innerHTML='<div class="bn"><p>📍 Adresse précise : <b>'+esc(r.data.address_label)+'</b></p></div>'}
 function show(n){if(V.indexOf(n)<0)n="accueil";V.forEach(function(v){$("v-"+v).classList.toggle("on",v==n)});
 document.querySelectorAll(".bar button").forEach(function(b){b.classList.toggle("on",b.dataset.v==n)});window.scrollTo(0,0);if(n!="messages")tk=null;else msgs()}
 function go(n,t){if(t){var r=document.querySelector("input[name=t][value="+t+"]");if(r)r.checked=true}location.hash=n}
 document.querySelector(".bar").onclick=function(e){var b=e.target.closest("button");if(b)go(b.dataset.v)};
 window.onhashchange=function(){show(location.hash.slice(1))};
 function send(e,id){e.preventDefault();$(id).style.display="block";e.target.reset();return false}
-draw();comp();gate();show(location.hash.slice(1));if(!S.city)openCity();setTimeout(function(){$("splash").classList.add("out")},1900);
+draw();comp();gate();show(location.hash.slice(1));if(!S.city)openCity();if(sb)initSb();setTimeout(function(){$("splash").classList.add("out")},1900);
 </script>
 </body>
 </html>
