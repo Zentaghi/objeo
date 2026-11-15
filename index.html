@@ -2,13 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Objeo – Retrouve tes affaires</title>
 <style>
 :root{--bg:#EEF6F6;--card:#fff;--ink:#142A38;--mut:#5f7782;--acc:#167C78;--pas:#E3F4F0;--line:#dbe8e8;--hero:#142A38;--pink:#FFE9E2;--pinkt:#b24a35;--sun:#FFF3CC;color-scheme:light;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1c26;--card:#142A38;--ink:#eaf3f3;--mut:#9db3bb;--acc:#3cc0b8;--pas:#173a41;--line:#26434f;--hero:#0a1620;--pink:#3a2622;--pinkt:#ff9d85;--sun:#3a3320;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0d1c26;--card:#142A38;--ink:#eaf3f3;--mut:#9db3bb;--acc:#3cc0b8;--pas:#173a41;--line:#26434f;--hero:#0a1620;--pink:#3a2622;--pinkt:#ff9d85;--sun:#3a3320;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation; overflow-x:hidden; overscroll-behavior:none}
+body{overflow-x:hidden; overscroll-behavior:none}
+input,select,textarea{font-size:16px}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif}
 .app{max-width:560px;margin:auto;min-height:100%;display:flex;flex-direction:column;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
