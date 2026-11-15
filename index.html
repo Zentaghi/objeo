@@ -29,10 +29,10 @@ h2{font-size:1.4rem;margin:4px 0 4px}h3{margin:0 0 2px;font-size:1.05rem}
 .btn{background:var(--acc);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
 .btn:active{transform:scale(.97)}.btn.w{width:100%;padding:14px}
 .big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-.tile{border:0;border-radius:22px;padding:16px;text-align:left;font:inherit;color:(--ink);cursor:pointer}
-.tile span{font-size:1.8rem;display:block}.tile b{display:block;margin-top:4px}.tile small{color:(--mut)}
-.t1{background:(--pink)}.t2{background:(--pas)}
-.card{background:(--card);border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;box-shadow:0 2px 0 var(--line)}
+.tile{border:0;border-radius:22px;padding:16px;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.tile span{font-size:1.8rem;display:block}.tile b{display:block;margin-top:4px}.tile small{color:var(--mut)}
+.t1{background:var(--pink)}.t2{background:var(--pas)}
+.card{background:var(--card);border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;box-shadow:0 2px 0 var(--line)}
 .ico{font-size:1.7rem;width:52px;height:52px;border-radius:16px;background:var(--pas);display:grid;place-items:center;flex:none}
 .card p{margin:0;color:var(--mut);font-size:.88rem}
 .tag{font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:99px;background:var(--pas);color:var(--acc)}.tag.p{background:var(--pink);color:var(--pinkt)}
@@ -83,6 +83,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 @media (prefers-reduced-motion:reduce){#splash img,#splash b,#splash p{animation:none}}
 .ico{overflow:hidden}.ico img{width:100%;height:100%;object-fit:cover}
 #sug{display:grid;gap:6px}#sug .chip{text-align:left;border-radius:14px;white-space:normal}
+.pic{width:100%;max-height:260px;object-fit:cover;border-radius:22px;margin:10px 0}
 </style>
 </head>
 <body>
@@ -138,6 +139,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 
 <section class="view" id="v-compte"></section>
 <section class="view" id="v-messages"></section>
+<section class="view" id="v-mine"></section>
 
 <section class="view" id="v-apropos">
 <h2>À propos 💙</h2><p class="sub">Objeo est une association loi 1901, 100 % gratuite : pas d’abonnement, pas de pub, pas de commission.</p>
@@ -156,6 +158,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 <button class="btn w" onclick="saveCity()">C’est parti !</button>
 <p class="note" style="margin-top:12px">Tu pourras la changer à tout moment.</p>
 </div></div>
+<div class="ov" id="adOv"><div><button class="link" onclick="closeAd()">✕ Fermer</button><div id="adBody"></div></div></div>
 <div class="ov" id="ctOv"><div><button class="link" onclick="closeCt()">✕ Fermer</button><h2>Écrire à la personne 💬</h2>
 <div class="card"><div><h3 id="ctT"></h3><p id="ctP"></p></div></div>
 <div id="ctG"><div class="bn"><p>🔒 Crée un compte gratuit pour envoyer un message.</p><button class="btn" onclick="closeCt();go('compte')">Créer</button></div></div>
@@ -177,7 +180,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 var SB_URL="https://cvsecsmaczyadidapuyi.supabase.co",SB_KEY="sb_publishable_btaX4jgtCGbB4piFnoiJfQ_JZkFMN2P";
 // Si ces deux champs sont vides, l'appli tourne en mode démo (données locales).
 var sb=(SB_URL&&SB_KEY&&window.supabase)?window.supabase.createClient(SB_URL,SB_KEY):null;
-var S={city:"",user:null,acc:{},ads:[]},V=["accueil","explorer","signaler","points","compte","apropos","messages"],cat="Tout",all=false,mode="new";
+var S={city:"",user:null,acc:{},ads:[]},V=["accueil","explorer","signaler","points","compte","apropos","messages","mine"],cat="Tout",all=false,mode="new";
 var C=["Tout","Clés","Papiers","Sacs","Électronique","Autre"];
 var D=[["p","🔑","Trousseau de clés","Rouen","Clés","Près de la gare · 12 nov."],["t","👛","Portefeuille noir","Lyon","Papiers","Place Bellecour · 13 nov."],["p","🎒","Sac à dos bleu","Caen","Sacs","Tram T1 · 10 nov."],["t","🎧","Écouteurs sans fil","Paris","Électronique","Parc des Buttes-Chaumont · 14 nov."],["p","📱","Téléphone portable","Rouen","Électronique","Campus · 11 nov."],["t","🪪","Carte étudiante","Marseille","Papiers","Bibliothèque · 12 nov."]];
 try{var l=JSON.parse(localStorage.getItem("objeo"));if(l)S=l}catch(e){}
@@ -188,7 +191,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;
 function $(i){return document.getElementById(i)}
 function all_(){return S.ads.concat(D)}
 function near(d){return d[3].toLowerCase()==S.city.toLowerCase()}
-function row(d){return'<div class="card"><div class="ico">'+(d[8]?'<img src="'+esc(d[8])+'" alt="">':d[1])+'</div><div><span class="tag '+(d[0]=="p"?"p":"")+'">'+(d[0]=="p"?"Perdu":"Trouvé")+'</span><h3>'+esc(d[2])+'</h3><p>'+esc(d[3])+' · '+esc(d[5])+'</p>'+act(d)+'</div></div>'}
+function row(d){return'<div class="card" data-ad="'+esc(d[7]||"")+'" style="cursor:pointer"><div class="ico">'+(d[8]?'<img src="'+esc(d[8])+'" alt="">':d[1])+'</div><div><span class="tag '+(d[0]=="p"?"p":"")+'">'+(d[0]=="p"?"Perdu":"Trouvé")+'</span><h3>'+esc(d[2])+'</h3><p>'+esc(d[3])+' · '+esc(d[5])+'</p>'+act(d)+'</div></div>'}
 function act(d){return S.user&&d[6]==S.user.email?'<p><b>✅ Ton annonce</b></p>':'<button class="btn sm" data-ct="'+esc(d[7]||"")+'">💬 '+(d[0]=="p"?"Je l’ai trouvé":"C’est à moi")+'</button>'}
 function empty(){return'<div class="empty"><span>🫥</span>Pas encore d’annonce ici.<br>Sois le premier à en publier !</div>'}
 function draw(){var q=$("q").value.toLowerCase();
@@ -209,10 +212,10 @@ function saveCity(){var v=$("cityIn").value.trim();if(!v){$("cityIn").focus();re
 function gate(){$("gate").innerHTML=S.user?"":'<div class="bn"><p>🔒 Il faut un compte pour publier.</p><button class="btn" onclick="go(\'compte\')">Créer</button></div>';$("pub").style.display=S.user?"grid":"none"}
 function pub(e){e.preventDefault();if(!S.user)return false;if(sb)return pubSb(e);if(!addrOk())return false;var t=document.querySelector("input[name=t]:checked").value;
 var ic={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"}[$("pc").value];
-S.ads.unshift([t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now()]);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();return false}
+S.ads.unshift([t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now(),null,null,$("pt").value.trim()]);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();return false}
 async function hs(s){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}catch(e){return s}}
 function comp(){var el=$("v-compte");
-if(S.user){el.innerHTML='<div class="me"><div class="av">😊</div><h2>Salut '+esc(S.user.name)+' !</h2><p class="sub">'+esc(S.user.mail||S.user.email)+'<br>📍 '+esc(S.city||"—")+'</p></div><div class="card" onclick="go(\'messages\')" style="cursor:pointer"><div class="ico">💬</div><div><h3>Mes conversations</h3><p>'+nconv()+' conversation(s)</p></div></div><div class="card" onclick="openCity()" style="cursor:pointer"><div class="ico">📍</div><div><h3>Changer de ville</h3><p>Actuellement : '+esc(S.city||"—")+'</p></div></div><div class="card" onclick="go(\'apropos\')" style="cursor:pointer"><div class="ico">💙</div><div><h3>À propos d’Objeo</h3><p>Mission, valeurs, ambition</p></div></div><button class="btn w" style="background:var(--pas);color:var(--acc)" onclick="logout()">Me déconnecter</button>';return}
+if(S.user){el.innerHTML='<div class="me"><div class="av">😊</div><h2>Salut '+esc(S.user.name)+' !</h2><p class="sub">'+esc(S.user.mail||S.user.email)+'<br>📍 '+esc(S.city||"—")+'</p></div><div class="card" onclick="go(\'mine\')" style="cursor:pointer"><div class="ico">📋</div><div><h3>Mes annonces</h3><p>'+all_().filter(function(d){return d[6]==S.user.email}).length+' en cours</p></div></div><div class="card" onclick="go(\'messages\')" style="cursor:pointer"><div class="ico">💬</div><div><h3>Mes conversations</h3><p>'+nconv()+' conversation(s)</p></div></div><div class="card" onclick="openCity()" style="cursor:pointer"><div class="ico">📍</div><div><h3>Changer de ville</h3><p>Actuellement : '+esc(S.city||"—")+'</p></div></div><div class="card" onclick="go(\'apropos\')" style="cursor:pointer"><div class="ico">💙</div><div><h3>À propos d’Objeo</h3><p>Mission, valeurs, ambition</p></div></div><button class="btn w" style="background:var(--pas);color:var(--acc)" onclick="logout()">Me déconnecter</button>';return}
 el.innerHTML='<div class="me"><div class="av">👤</div><h2>'+(mode=="new"?"Crée ton compte":"Content de te revoir !")+'</h2><p class="sub">Pour publier des annonces et gérer les tiennes. Gratuit, pour toujours.</p></div><form onsubmit="return auth(event)">'+(mode=="new"?'<label>Ton prénom<input id="an" required></label>':'')+'<label>Email<input id="ae" type="email" required autocomplete="email"></label><label>Mot de passe<input id="ap" type="password" required minlength="8" placeholder="8 caractères minimum" autocomplete="'+(mode=="new"?"new-password":"current-password")+'"></label><div class="ok" id="er" style="background:var(--pink);color:var(--pinkt)"></div><button class="btn w">'+(mode=="new"?"Créer mon compte":"Me connecter")+'</button></form><p style="text-align:center"><button class="link" onclick="mode=mode==\'new\'?\'in\':\'new\';comp()">'+(mode=="new"?"J’ai déjà un compte":"Pas encore de compte ? Créer")+'</button></p>'+(sb?"":'<p class="note">Mode démo : ton compte reste sur cet appareil. La vraie connexion arrive bientôt.</p>')}
 async function auth(e){e.preventDefault();if(sb)return authSb(e);var em=$("ae").value.trim().toLowerCase(),h=await hs(em+$("ap").value),er=$("er");
 if(mode=="new"){if(S.acc[em]){er.textContent="Cet email a déjà un compte.";er.style.display="block";return false}S.acc[em]={name:$("an").value.trim(),h:h};}
@@ -221,8 +224,8 @@ S.user={name:S.acc[em].name,email:em};save();comp();gate();draw();return false}
 function logout(){if(sb)sb.auth.signOut();S.user=null;save();comp();gate();draw()}
 var cur=null;
 function findAd(id){return all_().filter(function(d){return d[7]==id})[0]}
-function onCt(e){var b=e.target.closest("[data-ct]");if(!b)return;var d=findAd(b.dataset.ct);if(d){cur=d;openCt()}}
-$("list").onclick=onCt;$("recent").onclick=onCt;
+function onCt(e){var b=e.target.closest("[data-ct]");if(b){var d=findAd(b.dataset.ct);if(d){cur=d;openCt()}return}var c=e.target.closest("[data-ad]");if(c){var d2=findAd(c.dataset.ad);if(d2){cur=d2;openAd()}}}
+$("list").onclick=onCt;$("recent").onclick=onCt;$("v-mine").onclick=onCt;
 function openCt(){var d=cur;$("ctT").textContent=(d[0]=="p"?"😢 Perdu : ":"🎉 Trouvé : ")+d[2];$("ctP").textContent=d[3]+" · "+d[5];$("ctOk").style.display="none";$("ctF").style.display=S.user?"grid":"none";$("ctG").style.display=S.user?"none":"block";$("ctX").value="";$("ctOv").classList.add("on")}
 function closeCt(){$("ctOv").classList.remove("on")}
 function sendCt(e){e.preventDefault();if(sb)return sendCtSb(e);var m={ad:cur[7],title:cur[2],to:cur[6],from:S.user.email,name:S.user.name,text:$("ctX").value.trim(),t:Date.now()};m.k=kk(m);S.msgs.push(m);save();demo(m.k,m.to);closeCt();tk=m.k;go("messages");msgs();return false}
@@ -250,14 +253,14 @@ tmr=setTimeout(async function(){try{var r=await fetch("https://data.geopf.fr/geo
 $("sug").innerHTML=AF.map(function(f,i){return'<button type="button" class="chip" data-a="'+i+'">📍 '+esc(f.properties.label)+'</button>'}).join("")}catch(x){addrErr=true;$("sug").innerHTML='<p class="note">Adresses indisponibles : tu peux saisir à la main.</p>'}},300)};
 $("sug").onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var f=AF[b.dataset.a],p=f.properties;A={label:p.label,city:p.city,postcode:p.postcode,citycode:p.citycode,lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0]};$("pw").value=p.label;$("sug").innerHTML='<p class="note" style="color:var(--acc)">✅ Adresse vérifiée</p>'};
 /* ---- Supabase ---- */
-function mapAd(a){return[a.kind=="lost"?"p":"t",ICO[a.category]||"📦",a.title,a.city,a.category,fd(a.happened_on),a.user_id,a.id,a.photo_path?sb.storage.from("ad-photos").getPublicUrl(a.photo_path).data.publicUrl:null]}
+function mapAd(a){return[a.kind=="lost"?"p":"t",ICO[a.category]||"📦",a.title,a.city,a.category,fd(a.happened_on),a.user_id,a.id,a.photo_path?sb.storage.from("ad-photos").getPublicUrl(a.photo_path).data.publicUrl:null,a.photo_path,a.description]}
 async function loadAds(){var r=await sb.from("ads").select("*").eq("status","open").order("created_at",{ascending:false}).limit(200);if(!r.error){D=r.data.map(mapAd);draw()}}
 async function loadMsgs(){if(!S.user)return;var r=await sb.from("messages").select("id,body,created_at,sender_id,conversation_id,profiles:sender_id(name),conversations(ad_id,seeker_id,ads(title,user_id))").order("created_at");if(r.error)return;
 S.msgs=r.data.map(function(m){var c=m.conversations;return{k:m.conversation_id,ad:c.ad_id,title:c.ads.title,to:m.sender_id==c.seeker_id?c.ads.user_id:c.seeker_id,from:m.sender_id,name:(m.profiles&&m.profiles.name)||"Quelqu’un",text:m.body,t:Date.parse(m.created_at)}});if($("v-messages").classList.contains("on"))msgs();comp()}
 async function setUser(u){if(u){var p=await sb.from("profiles").select("name").eq("id",u.id).maybeSingle();S.user={name:(p.data&&p.data.name)||"toi",email:u.id,mail:u.email};await loadMsgs()}else{S.user=null;S.msgs=[]}comp();gate();draw()}
 async function initSb(){await loadAds();var s=await sb.auth.getSession();await setUser(s.data.session&&s.data.session.user);
 sb.auth.onAuthStateChange(function(ev,ss){if(ev=="SIGNED_IN"||ev=="SIGNED_OUT")setTimeout(function(){setUser(ss&&ss.user)},0)});
-sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},function(){loadMsgs()}).on("postgres_changes",{event:"INSERT",schema:"public",table:"ads"},loadAds).subscribe()}
+sb.channel("live").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},function(){loadMsgs()}).on("postgres_changes",{event:"*",schema:"public",table:"ads"},loadAds).subscribe()}
 async function authSb(e){e.preventDefault();var em=$("ae").value.trim().toLowerCase(),pw=$("ap").value,er=$("er"),r;er.style.display="block";er.style.background="var(--pink)";er.style.color="var(--pinkt)";er.textContent="…";
 r=mode=="new"?await sb.auth.signUp({email:em,password:pw,options:{data:{name:$("an").value.trim()}}}):await sb.auth.signInWithPassword({email:em,password:pw});
 if(r.error){var m=r.error.message;er.textContent=/invalid login/i.test(m)?"Email ou mot de passe incorrect.":/already/i.test(m)?"Cet email a déjà un compte.":m;return false}
@@ -281,8 +284,20 @@ var m=await sb.from("messages").insert({conversation_id:id,body:txt});if(m.error
 await loadMsgs();closeCt();tk=id;go("messages");msgs()}catch(x){alert("Oups : "+x.message)}b.disabled=false;return false}
 async function replySb(e){e.preventDefault();var r=await sb.from("messages").insert({conversation_id:tk,body:$("rx").value.trim()});if(r.error){alert("Oups : "+r.error.message);return false}await loadMsgs();window.scrollTo(0,document.body.scrollHeight);return false}
 async function adr(id){var r=await sb.from("ad_private").select("address_label").eq("ad_id",id).maybeSingle();if(r.data&&$("adr"))$("adr").innerHTML='<div class="bn"><p>📍 Adresse précise : <b>'+esc(r.data.address_label)+'</b></p></div>'}
+function openAd(){var d=cur,own=S.user&&d[6]==S.user.email;
+$("adBody").innerHTML=(d[8]?'<img class="pic" src="'+esc(d[8])+'" alt="">':'<div class="big1">'+d[1]+'</div>')+'<span class="tag '+(d[0]=="p"?"p":"")+'">'+(d[0]=="p"?"Perdu":"Trouvé")+'</span><h2>'+esc(d[2])+'</h2><p class="sub">📍 '+esc(d[3])+' · '+esc(d[4])+' · '+esc(d[5])+'</p><div class="card"><p style="font-size:1rem;color:var(--ink)">'+(d[10]?esc(d[10]):"Pas de description.")+'</p></div>'+
+(own?'<p class="sub" style="margin-top:14px"><b>'+(d[0]=="p"?"As-tu retrouvé ton objet ?":"L’objet a-t-il été rendu à son propriétaire ?")+'</b></p><button class="btn w" onclick="doneAd()">✅ Oui, supprimer l’annonce</button><button class="btn w" style="background:var(--pas);color:var(--acc);margin-top:10px" onclick="closeAd()">🔎 Pas encore</button>':'<button class="btn w" style="margin-top:14px" onclick="closeAd();openCt()">💬 '+(d[0]=="p"?"Je l’ai trouvé":"C’est à moi")+'</button>');
+$("adOv").classList.add("on")}
+function closeAd(){$("adOv").classList.remove("on")}
+async function doneAd(){var d=cur;if(!confirm(d[0]=="p"?"Tu as retrouvé ton objet ? L’annonce et ses messages seront supprimés.":"L’objet a été rendu à son propriétaire ? L’annonce et ses messages seront supprimés."))return;
+if(sb){var r=await sb.from("ads").delete().eq("id",d[7]);if(r.error){alert("Oups : "+r.error.message);return}if(d[9])await sb.storage.from("ad-photos").remove([d[9]]);await loadAds();await loadMsgs()}
+else{S.ads=S.ads.filter(function(a){return a[7]!=d[7]});S.msgs=S.msgs.filter(function(m){return m.ad!=d[7]});save()}
+closeAd();draw();if($("v-mine").classList.contains("on"))mine();comp()}
+function mine(){var el=$("v-mine");if(!S.user){el.innerHTML='<div class="empty"><span>🔒</span>Connecte-toi pour voir tes annonces.</div>';return}
+var r=all_().filter(function(d){return d[6]==S.user.email});
+el.innerHTML='<button class="link" onclick="go(\'compte\')">← Retour</button><h2>Mes annonces 📋</h2><p class="sub">Touche une annonce pour dire si ton objet est retrouvé.</p>'+(r.length?r.map(row).join(""):empty())}
 function show(n){if(V.indexOf(n)<0)n="accueil";V.forEach(function(v){$("v-"+v).classList.toggle("on",v==n)});
-document.querySelectorAll(".bar button").forEach(function(b){b.classList.toggle("on",b.dataset.v==n)});window.scrollTo(0,0);if(n!="messages")tk=null;else msgs()}
+document.querySelectorAll(".bar button").forEach(function(b){b.classList.toggle("on",b.dataset.v==n)});window.scrollTo(0,0);if(n!="messages")tk=null;else msgs();if(n=="mine")mine()}
 function go(n,t){if(t){var r=document.querySelector("input[name=t][value="+t+"]");if(r)r.checked=true}location.hash=n}
 document.querySelector(".bar").onclick=function(e){var b=e.target.closest("button");if(b)go(b.dataset.v)};
 window.onhashchange=function(){show(location.hash.slice(1))};
