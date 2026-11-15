@@ -29,10 +29,10 @@ h2{font-size:1.4rem;margin:4px 0 4px}h3{margin:0 0 2px;font-size:1.05rem}
 .btn{background:var(--acc);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
 .btn:active{transform:scale(.97)}.btn.w{width:100%;padding:14px}
 .big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-.tile{border:0;border-radius:22px;padding:16px;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
-.tile span{font-size:1.8rem;display:block}.tile b{display:block;margin-top:4px}.tile small{color:var(--mut)}
-.t1{background:var(--pink)}.t2{background:var(--pas)}
-.card{background:var(--card);border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;box-shadow:0 2px 0 var(--line)}
+.tile{border:0;border-radius:22px;padding:16px;text-align:left;font:inherit;color:(--ink);cursor:pointer}
+.tile span{font-size:1.8rem;display:block}.tile b{display:block;margin-top:4px}.tile small{color:(--mut)}
+.t1{background:(--pink)}.t2{background:(--pas)}
+.card{background:(--card);border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;box-shadow:0 2px 0 var(--line)}
 .ico{font-size:1.7rem;width:52px;height:52px;border-radius:16px;background:var(--pas);display:grid;place-items:center;flex:none}
 .card p{margin:0;color:var(--mut);font-size:.88rem}
 .tag{font-size:.72rem;font-weight:800;padding:2px 10px;border-radius:99px;background:var(--pas);color:var(--acc)}.tag.p{background:var(--pink);color:var(--pinkt)}
@@ -174,7 +174,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-conten
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 // ====== CONFIG SUPABASE : colle ici l'URL et la clé publique (anon) de ton projet ======
-var SB_URL="",SB_KEY="";
+var SB_URL="https://cvsecsmaczyadidapuyi.supabase.co",SB_KEY="sb_publishable_btaX4jgtCGbB4piFnoiJfQ_JZkFMN2P";
 // Si ces deux champs sont vides, l'appli tourne en mode démo (données locales).
 var sb=(SB_URL&&SB_KEY&&window.supabase)?window.supabase.createClient(SB_URL,SB_KEY):null;
 var S={city:"",user:null,acc:{},ads:[]},V=["accueil","explorer","signaler","points","compte","apropos","messages"],cat="Tout",all=false,mode="new";
