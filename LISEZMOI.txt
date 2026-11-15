@@ -1,0 +1,14 @@
+OBJEO - prototype de l'appli
+
+Pour voir l'appli sur ton PC :
+1. Décompresse ce dossier.
+2. Double-clique sur index.html (ça s'ouvre dans ton navigateur).
+3. Astuce : active le mode mobile du navigateur (touche F12, puis l'icône téléphone) pour voir le rendu appli.
+
+Contenu :
+- index.html : l'appli prototype (logo de démarrage, choix de la ville, compte, annonces, conversations)
+- assets/logo.png : ton logo en haute définition
+- AddressInput.tsx : composant d'autocomplétion d'adresses pour ton futur projet Next.js
+  (il ne fonctionne pas dans index.html)
+
+Mode démo : comptes, annonces et messages restent sur ton ordinateur.
