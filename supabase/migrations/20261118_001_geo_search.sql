@@ -107,8 +107,7 @@ as $$
     and (args.kind is null or a.kind = args.kind)
     and (args.category is null or a.category = args.category)
     and (args.q is null or
-      concat_ws(' ',a.title,a.description,a.category,a.city) ilike
-      '%' || replace(replace(replace(args.q,'\\','\\\\'),'%','\\%'),'_','\\_') || '%' escape '\\')
+      concat_ws(' ',a.title,a.description,a.category,a.city) ilike '%' || args.q || '%')
     and (args.origin is null or (
       a.search_location is not null
       and extensions.ST_DWithin(a.search_location,args.origin,args.radius_m)
