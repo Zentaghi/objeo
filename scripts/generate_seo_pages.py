@@ -132,7 +132,7 @@ def build_sitemap(ads):
         node = ET.SubElement(root, f"{{{XMLNS}}}url")
         ET.SubElement(node, f"{{{XMLNS}}}loc").text = BASE + "/annonces/" + ident + ".html"
         modified = str(ad.get("created_at") or "")[:10]
-        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", modified):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", modified):
             ET.SubElement(node, f"{{{XMLNS}}}lastmod").text = modified
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="unicode") + "\n"
     write_if_changed(SITEMAP, xml)
@@ -149,7 +149,7 @@ def main():
         expected.add(name)
         write_if_changed(OUTPUT / name, page_html(ad))
     for old in OUTPUT.glob("*.html"):
-        if old.name not in expected and re.fullmatch(r"[a-f0-9-]{36}\\.html", old.name):
+        if old.name not in expected and re.fullmatch(r"[a-f0-9-]{36}\.html", old.name):
             old.unlink()
     build_sitemap(ads)
     print(f"Generated {len(ads)} public ad pages.")
