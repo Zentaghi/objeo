@@ -272,9 +272,10 @@ function openCity(){$("cityIn").value=S.city;$("cityChips").innerHTML=["Paris","
 $("cityChips").onclick=function(e){if(e.target.dataset.c)$("cityIn").value=e.target.dataset.c};
 function saveCity(){var v=$("cityIn").value.trim();if(!v){$("cityIn").focus();return}S.city=v;save();$("cityOv").classList.remove("on");draw();comp();gate()}
 function gate(){$("gate").innerHTML=S.user?"":'<div class="bn"><p>🔒 Il faut un compte pour publier.</p><button class="btn" onclick="go(\'compte\')">Créer</button></div>';$("pub").style.display=S.user?"grid":"none"}
+function notifyPublished(id){if(window.parent!==window)window.parent.postMessage({type:"objeo:published",id:String(id)},location.origin);else{cur=findAd(String(id));if(cur)openAd()}}
 function pub(e){e.preventDefault();if(!S.user)return false;if(sb)return pubSb(e);if(!addrOk())return false;var t=document.querySelector("input[name=t]:checked").value;
 var ic={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"}[$("pc").value];
-S.ads.unshift([t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now(),null,null,$("pt").value.trim()]);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();return false}
+var newAd=[t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now(),null,null,$("pt").value.trim()];S.ads.unshift(newAd);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();notifyPublished(newAd[7]);return false}
 async function hs(s){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}catch(e){return s}}
 function comp(){var el=$("v-compte");
 if(S.user){el.innerHTML='<div class="me"><div class="av">😊</div><h2>Salut '+esc(S.user.name)+' !</h2><p class="sub">'+esc(S.user.mail||S.user.email)+'<br>📍 '+esc(S.city||"—")+'</p></div><div class="card" onclick="go(\'mine\')" style="cursor:pointer"><div class="ico">📋</div><div><h3>Mes annonces</h3><p>'+all_().filter(function(d){return d[6]==S.user.email}).length+' en cours</p></div></div><div class="card" onclick="go(\'messages\')" style="cursor:pointer"><div class="ico">💬</div><div><h3>Mes conversations</h3><p>'+nconv()+' conversation(s)</p></div></div><div class="card" onclick="openCity()" style="cursor:pointer"><div class="ico">📍</div><div><h3>Changer de ville</h3><p>Actuellement : '+esc(S.city||"—")+'</p></div></div><div class="card" onclick="go(\'apropos\')" style="cursor:pointer"><div class="ico">💙</div><div><h3>À propos d’Objeo</h3><p>Mission, valeurs, ambition</p></div></div><button class="btn w" style="background:var(--pas);color:var(--acc)" onclick="logout()">Me déconnecter</button>';return}
@@ -338,7 +339,7 @@ var t=document.querySelector("input[name=t]:checked").value,a=A||{city:S.city,la
 var r=await sb.from("ads").insert({kind:t=="p"?"lost":"found",title:$("pn").value.trim(),category:$("pc").value,description:$("pt").value.trim()||null,photo_path:path,city:a.city,citycode:a.citycode||null,approx_lat:a.lat?Math.round(a.lat*100)/100:null,approx_lon:a.lon?Math.round(a.lon*100)/100:null,happened_on:$("pd").value}).select("id").single();
 if(r.error)throw r.error;
 var p=await sb.from("ad_private").insert({ad_id:r.data.id,address_label:a.label,lat:a.lat||null,lon:a.lon||null});if(p.error)throw p.error;
-e.target.reset();A=null;$("sug").innerHTML="";ok.style.background="";ok.textContent="C’est publié ! On croise les doigts 🤞";ok.style.display="block";loadAds()}
+e.target.reset();A=null;$("sug").innerHTML="";ok.style.background="";ok.textContent="C’est publié ! On croise les doigts 🤞";ok.style.display="block";await loadAds();notifyPublished(r.data.id)}
 catch(x){ok.style.background="var(--pink)";ok.textContent="Oups : "+(x.message||"erreur");ok.style.display="block"}
 b.disabled=false;return false}
 async function sendCtSb(e){e.preventDefault();var b=e.target.querySelector("button"),txt=$("ctX").value.trim();b.disabled=true;
