@@ -89,7 +89,7 @@ function renderMine(){
  const q=normalizeProSearch($('mineQuery').value),filter=$('mineFilter').value;
  const visible=items.filter(x=>(filter==='all'||x.status===filter||x.kind===filter)&&normalizeProSearch([x.title,x.category,x.description].join(' ')).includes(q));
  $('mineCount').textContent=visible.length+' annonce'+(visible.length>1?'s':'')+' affichée'+(visible.length>1?'s':'')+' sur '+items.length;
- $('myItems').innerHTML=visible.length?visible.map(x=>'<div class="item">'+(x.photo_path?'<img class="item-photo" loading="lazy" src="'+esc(photoUrl(x.photo_path))+'" alt="Photo de l’objet">':'')+'<strong>'+esc(x.title)+'</strong><p>'+esc(x.category)+' · '+esc(x.kind==='found'?'Trouvé':'Perdu')+' · '+esc(x.status==='returned'?(x.kind==='lost'?'Retrouvé':'Restitué'):'En cours')+'</p><div class="pro-item-management">'+(x.status==='open'?'<a class="btn" href="'+esc(proShareUrl(myEst.id,x.id))+'">Voir / partager</a><button type="button" class="secondary" data-edit="'+esc(x.id)+'">✎ Modifier</button><button type="button" class="secondary" data-return="'+esc(x.id)+'">'+(x.kind==='lost'?'✅ Objet retrouvé':'✅ Objet restitué')+'</button>':'<span class="pill">✓ Annonce terminée</span>')+'</div></div>').join(''):'<p>Aucune annonce pour ces filtres.</p>';
+ $('myItems').innerHTML=visible.length?visible.map(x=>'<div class="item">'+(x.photo_path?'<img class="item-photo" loading="lazy" src="'+esc(photoUrl(x.photo_path))+'" alt="Photo de l’objet">':'')+'<strong>'+esc(x.title)+'</strong><p>'+esc(x.category)+' · '+esc(x.kind==='found'?'Trouvé':'Perdu')+' · '+esc(x.status==='returned'?(x.kind==='lost'?'Retrouvé':'Restitué'):'En cours')+'</p><div class="pro-item-management">'+(x.status==='open'?'<a class="btn" href="'+esc(proShareUrl(myEst.id,x.id))+'">Voir / partager</a><button type="button" class="secondary" data-edit="'+esc(x.id)+'">✎ Modifier</button>'+(isProOwner?'<button type="button" class="secondary" data-return="'+esc(x.id)+'">'+(x.kind==='lost'?'✅ Objet retrouvé':'✅ Objet restitué')+'</button>':''):'<span class="pill">✓ Annonce terminée</span>')+'</div></div>').join(''):'<p>Aucune annonce pour ces filtres.</p>';
  $('myItems').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProItem(b.dataset.edit));
  $('myItems').querySelectorAll('[data-return]').forEach(b=>b.onclick=()=>markReturned(b.dataset.return));
 }
@@ -100,7 +100,7 @@ function exportMineCsv(){
  const csv='\uFEFF'+rows.map(r=>r.map(escapeCsv).join(';')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='objeo-pro-annonces-'+new Date().toLocaleDateString('en-CA')+'.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);msg('Export CSV créé avec '+myProItems.length+' annonces.');
 }
 async function markReturned(id){
- if(!myEst||!user)return msg('Connectez-vous à votre compte professionnel.');
+ if(!myEst||!user||!isProOwner)return msg('Connectez-vous à votre compte professionnel.');
  const item=myProItems.find(x=>x.id===id);if(!item||item.status!=='open')return msg('Cette annonce est déjà terminée.');
  const label=item.kind==='lost'?'retrouvé':'restitué';
  if(!confirm('Confirmer que cet objet a bien été '+label+' ? L’annonce sera retirée des résultats publics, mais conservée dans votre historique professionnel.'))return;
