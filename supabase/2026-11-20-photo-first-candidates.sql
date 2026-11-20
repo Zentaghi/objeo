@@ -18,7 +18,7 @@ begin
  loop
   score:=20; reasons:=array['Même ville'];
   if nullif(trim(candidate.category),'') is not null
-     and lower(trim(candidate.category))=lower(trim(coalesce(new.category,''))) then
+     and (lower(trim(candidate.category))=lower(trim(coalesce(new.category,''))) or (length(trim(candidate.category))>=3 and length(trim(coalesce(new.category,'')))>=3 and (lower(trim(candidate.category)) like lower(trim(coalesce(new.category,'')))||' et %' or lower(trim(coalesce(new.category,''))) like lower(trim(candidate.category))||' et %'))) then
     score:=score+25; reasons:=array_append(reasons,'Même catégorie');
   end if;
   select count(*) into title_hits from (
@@ -40,7 +40,7 @@ begin
   photo_candidate:=nullif(candidate.photo_path,'') is not null
     and nullif(new.photo_path,'') is not null
     and nullif(trim(candidate.category),'') is not null
-    and lower(trim(candidate.category))=lower(trim(coalesce(new.category,'')));
+    and (lower(trim(candidate.category))=lower(trim(coalesce(new.category,''))) or (length(trim(candidate.category))>=3 and length(trim(coalesce(new.category,'')))>=3 and (lower(trim(candidate.category)) like lower(trim(coalesce(new.category,'')))||' et %' or lower(trim(coalesce(new.category,''))) like lower(trim(candidate.category))||' et %')));
   if (title_hits>0 and score>=55) or photo_candidate then
    if photo_candidate and title_hits=0 then
     reasons:=array_append(reasons,'Photos à comparer (résultat provisoire)');
@@ -62,7 +62,7 @@ join public.ads a on a.kind='found' and a.status='open'
   and a.created_at>=now()-interval '7 days'
   and a.user_id<>s.owner_id
   and lower(trim(a.city))=lower(trim(s.city))
-  and lower(trim(a.category))=lower(trim(s.category))
+  and (lower(trim(a.category))=lower(trim(s.category)) or (length(trim(a.category))>=3 and length(trim(s.category))>=3 and (lower(trim(a.category)) like lower(trim(s.category))||' et %' or lower(trim(s.category)) like lower(trim(a.category))||' et %')))
 where nullif(trim(s.city),'') is not null
   and nullif(trim(s.category),'') is not null
   and nullif(s.photo_path,'') is not null
