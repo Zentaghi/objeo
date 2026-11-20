@@ -70,3 +70,19 @@ grant execute on function public.objeo_pro_decide_claim(uuid,boolean) to authent
 
 -- Claimant may track a request without seeing others' evidence.
 -- Do not expose private claimant email or identity to other visitors.
+
+-- Final restitution is the establishment owner's decision, even when staff edit listings.
+-- Replaces the earlier closed-item protection trigger function.
+create or replace function public.objeo_pro_protect_closed_items()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+begin
+ if old.status='returned' then raise exception 'Une annonce terminée ne peut pas être modifiée'; end if;
+ if old.establishment_id<>new.establishment_id then raise exception 'Changement d’établissement interdit'; end if;
+ if old.status is distinct from new.status and new.status='returned' and not exists(
+  select 1 from public.objeo_establishments e where e.id=old.establishment_id and e.owner_id=(select auth.uid())
+ ) then
+   raise exception 'Seul le responsable peut confirmer la restitution';
+ end if;
+ return new;
+end $$;
