@@ -24,5 +24,7 @@ jobs:
           cache: pip
           cache-dependency-path: scripts/private_image_matcher_requirements.txt
       - run: pip install -r scripts/private_image_matcher_requirements.txt
+      - name: Geocode cities and find nearby candidates
+        run: python scripts/geocode_cities.py
       - name: Compare private inventory photos server-side
         run: python scripts/private_image_matcher.py
