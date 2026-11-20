@@ -100,3 +100,15 @@ drop trigger if exists objeo_pro_protect_closed on public.objeo_establishment_it
 create trigger objeo_pro_protect_closed before update on public.objeo_establishment_items
 for each row execute function public.objeo_pro_protect_closed_items();
 
+
+-- Hide completed listings from anonymous visitors, while preserving team history.
+drop policy if exists "public read establishment items" on public.objeo_establishment_items;
+create policy "public read establishment items" on public.objeo_establishment_items
+for select using(status='open');
+drop policy if exists "pro owner reads all items" on public.objeo_establishment_items;
+create policy "pro owner reads all items" on public.objeo_establishment_items
+for select to authenticated using(exists(
+ select 1 from public.objeo_establishments e
+ where e.id=public.objeo_establishment_items.establishment_id
+ and e.owner_id=(select auth.uid())
+));
