@@ -101,10 +101,6 @@ grant execute on function public.objeo_admin_moderate(text,uuid,text) to authent
 
 -- Block suspended users from creating new ads/reports/claims.
 -- This does not disable login or every other legacy feature.
-drop policy if exists "objeo suspension prevents ads" on public.ads;
-create policy "objeo suspension prevents ads" on public.ads
-as restrictive for insert to authenticated
-with check(not exists(select 1 from public.objeo_user_suspensions s where s.user_id=(select auth.uid())));
 -- Suspension enforcement via a security-definer helper (RLS-safe).
 create or replace function public.objeo_is_not_suspended()
 returns boolean language sql stable security definer set search_path = ''
