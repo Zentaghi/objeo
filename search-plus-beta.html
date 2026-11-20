@@ -55,19 +55,19 @@ const destinations=[
 ];
 function resultCard(item){const article=document.createElement('article');article.className='source';const top=document.createElement('div');top.className='source-top';const badge=document.createElement('span');badge.className='source-icon';badge.textContent=item.icon;const heading=document.createElement('h3');heading.textContent=item.title;top.append(badge,heading);const p=document.createElement('p');p.textContent=item.desc;const link=document.createElement('a');link.className='source-button';link.textContent='Ouvrir la recherche ↗';link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';const foot=document.createElement('small');foot.textContent=item.subtitle;article.append(top,p,link,foot);return article}
 function search(ev){if(ev)ev.preventDefault();const object=clean($('object').value),city=clean($('city').value),details=clean($('details').value),type=clean($('type').value),where=$('where').value;if(object.length<2){$('object').focus();return}
- const core=terms([object,type,details].join(' '))||object,location=terms(city),q=[core,location,'objet trouvé'].filter(Boolean).join(' '),grid=$('sourceGrid');grid.replaceChildren();
+ const core=terms([object,type,details].join(' '))||object,cityTerms=terms(city),q=[core,cityTerms,'objet trouvé'].filter(Boolean).join(' '),grid=$('sourceGrid');grid.replaceChildren();
  const items=[
  externalLink('Google — Recherche générale','🌐','Explorer les pages d’objets trouvés référencées sur Internet.',google(q),'Recherche Google préremplie'),
  externalLink('Bing — Recherche générale','🔍','Compléter la recherche avec un second moteur.',bing(q),'Recherche Bing préremplie')
  ];
  for(const dest of destinations){
- const targeted=[core,location,'objet trouvé','site:'+dest.domain].filter(Boolean).join(' ');
+ const targeted=[core,cityTerms,'objet trouvé','site:'+dest.domain].filter(Boolean).join(' ');
  items.push(externalLink(dest.title,dest.icon,dest.desc,google(targeted),'Recherche Google limitée à '+dest.domain));
  items.push(externalLink(dest.title+' — Service officiel','↗','Ouvrir le site officiel pour consulter les démarches et déposer une déclaration.',dest.direct,'Page du service · recherche manuelle'));
  }
  if(where==='sncf')items.unshift(externalLink('Priorité : SNCF','🚆','Votre perte concerne une gare ou un train : commencez par le service officiel.',destinations[2].direct,'Déclaration SNCF'));
  if(where==='ratp')items.unshift(externalLink('Priorité : RATP','🚇','Votre perte concerne les transports franciliens : commencez par le service de déclaration.',destinations[3].direct,'Déclaration RATP'));
- if(where==='city')items.push(externalLink('Services municipaux','🏛️','Recherchez le service des objets trouvés de votre mairie ou de votre ville.',google(['service objets trouvés mairie',location].filter(Boolean).join(' ')),'Recherche des services locaux'));
+ if(where==='city')items.push(externalLink('Services municipaux','🏛️','Recherchez le service des objets trouvés de votre mairie ou de votre ville.',google(['service objets trouvés mairie',cityTerms].filter(Boolean).join(' ')),'Recherche des services locaux'));
  for(const item of items)grid.append(resultCard(item));
  $('summary').textContent='Recherche : « '+core+' »'+(city?' · '+city:'');
  $('results').classList.remove('hidden');
