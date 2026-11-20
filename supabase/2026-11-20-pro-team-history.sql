@@ -43,14 +43,14 @@ grant execute on function public.objeo_pro_remove_member(uuid,uuid) to authentic
 -- Staff can publish and edit objects but cannot edit establishment profile.
 drop policy if exists "pro team reads establishment items" on public.objeo_establishment_items;
 create policy "pro team reads establishment items" on public.objeo_establishment_items
-for select to authenticated using(exists(select 1 from public.objeo_pro_team t where t.establishment_id=establishment_id and t.user_id=(select auth.uid())));
+for select to authenticated using(exists(select 1 from public.objeo_pro_team t where t.establishment_id=public.objeo_establishment_items.establishment_id and t.user_id=(select auth.uid())));
 drop policy if exists "pro team inserts establishment items" on public.objeo_establishment_items;
 create policy "pro team inserts establishment items" on public.objeo_establishment_items
-for insert to authenticated with check(exists(select 1 from public.objeo_pro_team t where t.establishment_id=establishment_id and t.user_id=(select auth.uid())));
+for insert to authenticated with check(exists(select 1 from public.objeo_pro_team t where t.establishment_id=public.objeo_establishment_items.establishment_id and t.user_id=(select auth.uid())));
 drop policy if exists "pro team updates establishment items" on public.objeo_establishment_items;
 create policy "pro team updates establishment items" on public.objeo_establishment_items
-for update to authenticated using(exists(select 1 from public.objeo_pro_team t where t.establishment_id=establishment_id and t.user_id=(select auth.uid())))
-with check(exists(select 1 from public.objeo_pro_team t where t.establishment_id=establishment_id and t.user_id=(select auth.uid())));
+for update to authenticated using(exists(select 1 from public.objeo_pro_team t where t.establishment_id=public.objeo_establishment_items.establishment_id and t.user_id=(select auth.uid())))
+with check(exists(select 1 from public.objeo_pro_team t where t.establishment_id=public.objeo_establishment_items.establishment_id and t.user_id=(select auth.uid())));
 
 create table if not exists public.objeo_pro_return_events (
  id uuid primary key default gen_random_uuid(),
@@ -87,3 +87,16 @@ insert into public.objeo_pro_return_events(establishment_id,item_id,item_title,i
 select i.establishment_id,i.id,i.title,i.kind,null,i.created_at
 from public.objeo_establishment_items i where i.status='returned'
 on conflict(item_id) do nothing;
+-- Finished items may never be reopened or silently edited.
+create or replace function public.objeo_pro_protect_closed_items()
+returns trigger language plpgsql set search_path=''
+as $$
+begin
+ if old.status='returned' then raise exception 'Une annonce terminée ne peut pas être modifiée'; end if;
+ if old.establishment_id<>new.establishment_id then raise exception 'Changement d’établissement interdit'; end if;
+ return new;
+end $$;
+drop trigger if exists objeo_pro_protect_closed on public.objeo_establishment_items;
+create trigger objeo_pro_protect_closed before update on public.objeo_establishment_items
+for each row execute function public.objeo_pro_protect_closed_items();
+
