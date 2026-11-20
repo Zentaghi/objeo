@@ -24,7 +24,7 @@ using ((select auth.uid()) in (finder_id,claimant_id));
 create or replace function public.objeo_confirm_restitution(p_claim_id uuid)
 returns text language plpgsql security definer set search_path = ''
 as $$
-declare v_claim record; v_current uuid; v_completed boolean;
+declare v_claim record; v_current uuid; v_completed integer;
 begin
  v_current := (select auth.uid());
  if v_current is null then raise exception 'Connexion requise'; end if;
@@ -54,7 +54,7 @@ begin
  where claim_id=p_claim_id and completed_at is null
    and finder_confirmed_at is not null and claimant_confirmed_at is not null;
  get diagnostics v_completed = row_count;
- if v_completed then
+ if v_completed > 0 then
   insert into public.objeo_user_item_stats(user_id,returned_count,updated_at)
   values(v_claim.finder_id,1,now())
   on conflict(user_id) do update
