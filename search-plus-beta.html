@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff6e14">
+<meta name="robots" content="noindex,follow">
+<title>Objeo Search+ Bêta — Recherche étendue d'objets perdus</title>
+<meta name="description" content="Recherchez un objet perdu sur Internet, France Objets Trouvés, Troov et les services de transport à partir d'une seule page.">
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1c3249;background:#f5f8fd}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}a{text-decoration:none;color:inherit}button{cursor:pointer}.shell{max-width:1080px;padding:0 22px;margin:auto}
+.top{background:white;border-bottom:1px solid #e6edf5}.top .shell{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:30px;color:#ff6e14;letter-spacing:-1.3px;font-weight:900}.brand span{color:#1a344c}.back{font-size:13px;font-weight:750;color:#536b80}
+.hero{padding:52px 0 38px;background:linear-gradient(135deg,#fff1e7 0%,#f5f9ff 80%);border-bottom:1px solid #e5e9f1}.tag{font-size:12px;font-weight:850;letter-spacing:.07em;color:#9a4718;background:#ffe4d1;padding:7px 11px;border-radius:99px;display:inline-block}.hero h1{margin:16px 0 10px;font-size:clamp(32px,6vw,54px);letter-spacing:-1.7px;line-height:1.08}.hero h1 em{font-style:normal;color:#ed671b}.hero p{max-width:725px;color:#60768a;line-height:1.65;font-size:16px;margin:0}
+main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border-radius:20px;padding:27px;box-shadow:0 9px 32px #173c6510}.panel h2{margin:0 0 9px;font-size:23px}.sub{margin:0 0 22px;color:#61788e;font-size:14px;line-height:1.5}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:17px}.field-full{grid-column:1/-1}label{font-size:13px;font-weight:800;color:#324e67;display:block}input,select{width:100%;border:1px solid #d5e1ed;border-radius:11px;padding:13px 14px;background:#fff;color:#21384d;margin-top:7px;min-height:48px;outline:none}input:focus,select:focus{border-color:#ff8f52;box-shadow:0 0 0 3px #ff6e1424}
+.form-actions{display:flex;align-items:center;gap:13px;margin-top:23px;flex-wrap:wrap}.main-btn{border:0;padding:14px 23px;border-radius:12px;background:#ff6e14;color:white;font-weight:850;box-shadow:0 7px 17px #ff6e1426}.main-btn:hover{background:#e85f0d}.muted{font-size:12px;color:#718598;line-height:1.5}.safety{margin-top:16px;background:#f6f9fc;border:1px solid #e1ebf3;border-radius:12px;padding:13px;color:#5e7488;font-size:13px;line-height:1.55}
+.results{margin-top:28px}.results-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}.results-head h2{margin:0 0 7px}.query-text{font-size:13px;color:#688096;overflow-wrap:anywhere}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.source{padding:20px;border-radius:16px;border:1px solid #dde8f2;background:#fff;display:flex;flex-direction:column;gap:10px;min-width:0}.source-top{display:flex;align-items:center;gap:12px}.source-icon{background:#f2f7fc;width:43px;height:43px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px}.source h3{margin:0;font-size:17px}.source p{font-size:13px;color:#678096;line-height:1.5;margin:0;flex:1}.source-button{border:1px solid #d3e3f2;background:#eef6ff;color:#14558b;border-radius:10px;padding:11px 12px;font-size:13px;font-weight:850;text-align:center}.source-button:hover{background:#deeeff}.source small{color:#7a8d9c;font-size:11px}.hidden{display:none!important}.note{margin-top:24px;padding:19px;border-radius:14px;border:1px solid #e2eaf3;background:#fff;font-size:13px;line-height:1.7;color:#5e758b}.note strong{color:#264761}.tip{background:#fff4e9;border:1px solid #f6ddc3;padding:15px;border-radius:12px;color:#8e4d20;margin-top:17px;font-size:13px;line-height:1.55}
+@media(max-width:650px){.shell{padding:0 16px}.top .shell{min-height:65px}.brand{font-size:26px}.back{font-size:12px}.hero{padding:34px 0 29px}.fields,.source-grid{grid-template-columns:1fr}.panel{padding:20px}.form-actions{align-items:stretch}.main-btn{width:100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="shell"><a class="brand" href="/" aria-label="Objeo accueil">Objeo<span>.</span></a><a class="back" href="/">← Retour à Objeo</a></div></header>
+<section class="hero"><div class="shell"><span class="tag">BÊTA · OB JEO SEARCH+</span><h1>Votre recherche <em>va plus loin.</em></h1><p>Un objet perdu ? Préparez en quelques secondes des recherches ciblées sur le web et découvrez où chercher : France Objets Trouvés, Troov, SNCF, RATP et plus encore.</p></div></section>
+<main class="shell">
+<section class="panel" aria-labelledby="searchTitle"><h2 id="searchTitle">Décrivez l'objet perdu</h2><p class="sub">Objeo prépare vos recherches externes ; aucun compte n'est nécessaire.</p>
+<form id="searchForm"><div class="fields">
+<div class="field-full"><label for="object">Quel objet cherchez-vous ? *</label><input id="object" required minlength="2" maxlength="100" placeholder="Ex. portefeuille noir, iPhone 15, clés de voiture" autocomplete="off"></div>
+<div><label for="city">Ville ou secteur</label><input id="city" maxlength="80" placeholder="Ex. Rouen, Paris, 76000" autocomplete="address-level2"></div>
+<div><label for="type">Catégorie</label><select id="type"><option value="">Toutes catégories</option><option value="téléphone">Téléphone et électronique</option><option value="portefeuille">Portefeuille et papiers</option><option value="clés">Clés et badges</option><option value="sac">Sac et bagages</option><option value="bijoux">Bijoux et montres</option><option value="vêtement">Vêtements</option><option value="autre">Autre</option></select></div>
+<div class="field-full"><label for="details">Détails utiles (facultatif)</label><input id="details" maxlength="120" placeholder="Ex. noir, Samsung, gare, étui rouge"></div>
+<div class="field-full"><label for="where">Où l'avez-vous perdu ?</label><select id="where"><option value="">Je ne sais pas / ailleurs</option><option value="sncf">Dans un train ou une gare SNCF</option><option value="ratp">Dans le métro, RER, bus ou tram parisien</option><option value="city">Dans la rue ou un lieu public</option></select></div>
+</div><div class="form-actions"><button class="main-btn" type="submit">🔎 Préparer mes recherches</button><span class="muted">Gratuit · Sans collecte d'annonces tierces</span></div></form>
+<div class="safety">🔒 <strong>Confidentialité :</strong> n'indiquez pas de numéro de série, d'adresse complète, de téléphone, de numéro de carte ou d'autre donnée sensible. Les mots-clés seront transmis au moteur externe uniquement si vous cliquez sur son lien.</div>
+</section>
+<section id="results" class="results hidden" aria-live="polite"><div class="results-head"><div><h2>Vos pistes de recherche</h2><div id="summary" class="query-text"></div></div><span class="tag">RECHERCHE ASSISTÉE · BÊTA</span></div><div id="sourceGrid" class="source-grid"></div><div class="tip"><strong>Important :</strong> ces liens lancent une recherche sur d'autres sites ou ouvrent leur service officiel. Objeo n'a pas accès à leurs bases privées et ne peut pas garantir qu'un objet a été retrouvé. Une déclaration sur la plateforme concernée peut être nécessaire.</div></section>
+<div class="note"><strong>Comment ça marche ?</strong> Objeo adapte les mots-clés à votre description et propose des recherches Google/Bing sur des domaines spécifiques. Il n'aspire ni photos ni annonces externes. Cette bêta est une assistance à la recherche, pas une vérification automatique par IA des résultats des autres plateformes.</div>
+</main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+for(const key of ['object','city','details','type','where'])if(params.has(key)&&$(key))$(key).value=params.get(key).slice(0,$(key).maxLength>0?$(key).maxLength:100);
+const stop=new Set(['le','la','les','de','des','du','un','une','et','avec','dans','sur','mon','ma','mes','perdu','perdue','objet','objets','trouve','trouvé','trouvés']);
+function clean(value){return String(value||'').trim().replace(/\s+/g,' ').slice(0,120)}
+function terms(value){return clean(value).normalize('NFKC').split(/[\s,;]+/).filter(word=>word.length>1&&!stop.has(word.toLowerCase())).slice(0,14).join(' ')}
+function google(q){return 'https://www.google.com/search?q='+encodeURIComponent(q)}
+function bing(q){return 'https://www.bing.com/search?q='+encodeURIComponent(q)}
+function makeUrl(base){return base}
+function externalLink(title,icon,desc,url,subtitle){return {title,icon,desc,url,subtitle:subtitle||'Accès à un site externe'}}
+const destinations=[
+ {title:'France Objets Trouvés',icon:'🇫🇷',domain:'franceobjetstrouves.fr',direct:'https://www.franceobjetstrouves.fr/',desc:'Rechercher des pages publiques liées à votre objet, puis consulter le service officiel pour une déclaration.'},
+ {title:'Troov',icon:'🔎',domain:'troov.com',direct:'https://troov.com/',desc:'Trouver des pages publiques pertinentes ; le service peut demander une déclaration pour rechercher des correspondances.'},
+ {title:'Objets trouvés SNCF',icon:'🚆',domain:'garesetconnexions.sncf',direct:'https://www.garesetconnexions.sncf/fr/service-client/a-vos-cotes/objet-perdu-trouve',desc:'Le service officiel des objets perdus en gare ou dans les trains.'},
+ {title:'RATP et Île-de-France',icon:'🚇',domain:'ratp.franceobjetstrouves.fr',direct:'https://ratp.franceobjetstrouves.fr/',desc:'Déclarer un objet perdu sur le réseau de transports francilien.'}
+];
+function resultCard(item){const article=document.createElement('article');article.className='source';const top=document.createElement('div');top.className='source-top';const badge=document.createElement('span');badge.className='source-icon';badge.textContent=item.icon;const heading=document.createElement('h3');heading.textContent=item.title;top.append(badge,heading);const p=document.createElement('p');p.textContent=item.desc;const link=document.createElement('a');link.className='source-button';link.textContent='Ouvrir la recherche ↗';link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';const foot=document.createElement('small');foot.textContent=item.subtitle;article.append(top,p,link,foot);return article}
+function search(ev){if(ev)ev.preventDefault();const object=clean($('object').value),city=clean($('city').value),details=clean($('details').value),type=clean($('type').value),where=$('where').value;if(object.length<2){$('object').focus();return}
+ const core=terms([object,type,details].join(' '))||object,location=terms(city),q=[core,location,'objet trouvé'].filter(Boolean).join(' '),grid=$('sourceGrid');grid.replaceChildren();
+ const items=[
+ externalLink('Google — Recherche générale','🌐','Explorer les pages d’objets trouvés référencées sur Internet.',google(q),'Recherche Google préremplie'),
+ externalLink('Bing — Recherche générale','🔍','Compléter la recherche avec un second moteur.',bing(q),'Recherche Bing préremplie')
+ ];
+ for(const dest of destinations){
+ const targeted=[core,location,'objet trouvé','site:'+dest.domain].filter(Boolean).join(' ');
+ items.push(externalLink(dest.title,dest.icon,dest.desc,google(targeted),'Recherche Google limitée à '+dest.domain));
+ items.push(externalLink(dest.title+' — Service officiel','↗','Ouvrir le site officiel pour consulter les démarches et déposer une déclaration.',dest.direct,'Page du service · recherche manuelle'));
+ }
+ if(where==='sncf')items.unshift(externalLink('Priorité : SNCF','🚆','Votre perte concerne une gare ou un train : commencez par le service officiel.',destinations[2].direct,'Déclaration SNCF'));
+ if(where==='ratp')items.unshift(externalLink('Priorité : RATP','🚇','Votre perte concerne les transports franciliens : commencez par le service de déclaration.',destinations[3].direct,'Déclaration RATP'));
+ if(where==='city')items.push(externalLink('Services municipaux','🏛️','Recherchez le service des objets trouvés de votre mairie ou de votre ville.',google(['service objets trouvés mairie',location].filter(Boolean).join(' ')),'Recherche des services locaux'));
+ for(const item of items)grid.append(resultCard(item));
+ $('summary').textContent='Recherche : « '+core+' »'+(city?' · '+city:'');
+ $('results').classList.remove('hidden');
+ const url=new URL(location.href);for(const key of ['object','city','details','type','where']){const v=$(key).value;if(v)url.searchParams.set(key,v);else url.searchParams.delete(key)}history.replaceState(null,'',url.pathname+url.search);
+ $('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('searchForm').addEventListener('submit',search);
+if(params.get('object')?.trim().length>=2)search();
+})();
+</script>
+</body></html>
