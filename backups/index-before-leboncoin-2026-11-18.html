@@ -174,7 +174,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid #ff6e1428;border-color
 <form id="pub" onsubmit="return pub(event)">
 <div class="seg"><label><input type="radio" name="t" value="p" checked><span>😢 Perdu</span></label><label><input type="radio" name="t" value="t"><span>🎉 Trouvé</span></label></div>
 <label>Quel objet ?<input id="pn" required placeholder="Ex. Trousseau de clés"></label>
-<label>Catégorie<select id="pc"><option>Clés</option><option>Papiers</option><option>Sacs</option><option>Électronique</option><option>Autre</option></select></label>
+<label>Catégorie<select id="pc"><option>Téléphones et électronique</option><option>Clés et badges</option><option>Portefeuilles et papiers</option><option>Sacs et bagages</option><option>Vêtements et accessoires</option><option>Bijoux et montres</option><option>Lunettes</option><option>Ordinateurs et tablettes</option><option>Écouteurs et audio</option><option>Vélos et trottinettes</option><option>Animaux</option><option>Autres objets</option></select></label>
 <label>Description<textarea id="pt" rows="3" placeholder="Couleur, marque, petit détail qui le rend unique…"></textarea></label>
 <label>Une photo 📷<input id="pf" type="file" accept="image/*"></label>
 <label>Quand ?<input id="pd" type="date" required></label>
@@ -274,7 +274,7 @@ function saveCity(){var v=$("cityIn").value.trim();if(!v){$("cityIn").focus();re
 function gate(){$("gate").innerHTML=S.user?"":'<div class="bn"><p>🔒 Il faut un compte pour publier.</p><button class="btn" onclick="go(\'compte\')">Créer</button></div>';$("pub").style.display=S.user?"grid":"none"}
 function notifyPublished(id){cur=findAd(String(id));if(cur){openAd();window.scrollTo(0,0)}if(window.parent!==window)window.parent.postMessage({type:"objeo:published",id:String(id)},location.origin);else{cur=findAd(String(id));if(cur)openAd()}}
 function pub(e){e.preventDefault();if(!S.user)return false;if(sb)return pubSb(e);if(!addrOk())return false;var t=document.querySelector("input[name=t]:checked").value;
-var ic={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"}[$("pc").value];
+var ic=ICO[$("pc").value]||"📦";
 var newAd=[t,ic,$("pn").value,(A?A.city:S.city),$("pc").value,fd($("pd").value),S.user.email,"u"+Date.now(),null,null,$("pt").value.trim()];S.ads.unshift(newAd);save();e.target.reset();A=null;$("sug").innerHTML="";$("ok1").style.display="block";draw();notifyPublished(newAd[7]);return false}
 async function hs(s){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}catch(e){return s}}
 function comp(){var el=$("v-compte");
@@ -308,7 +308,7 @@ function msgs(){var el=$("v-messages");if(!S.user){el.innerHTML='<div class="emp
 var em=S.user.email,cs=convs(),note=sb?"":'<p class="note">Mode démo : les conversations restent sur cet appareil. L’échange réel arrive avec le serveur.</p>';
 if(tk){var c=cs.filter(function(c){return c.k==tk})[0];if(c){el.innerHTML='<button class="link" onclick="tk=null;msgs()">← Conversations</button><h2>'+esc(oname(c))+'</h2><p class="sub">À propos de : '+esc(c.m[0].title)+'</p><div id="adr"></div><div>'+c.m.map(function(m){return'<div class="bb '+(m.from==em?"me2":"ot")+'">'+esc(m.text)+'<br><small>'+hh(m.t)+'</small></div>'}).join("")+'</div><form onsubmit="return reply(event)" style="margin-top:14px"><label>Ta réponse<textarea id="rx" rows="2" required placeholder="Écris ton message…"></textarea></label><button class="btn w">Envoyer 💌</button></form>'+note;if(sb)adr(c.m[0].ad);return}tk=null}
 el.innerHTML='<button class="link" onclick="go(\'compte\')">← Retour</button><h2>Mes conversations 💬</h2><p class="sub">Ton email reste toujours privé.</p>'+(cs.length?cs.map(function(c){var l=c.m[c.m.length-1];return'<div class="card" data-k="'+esc(c.k)+'" style="cursor:pointer"><div class="ico">'+(l.from==em?"📤":"💬")+'</div><div><h3>'+esc(oname(c))+'</h3><p><b>'+esc(l.title)+'</b></p><p>'+esc(l.text.slice(0,60))+'</p></div></div>'}).join(""):'<div class="empty"><span>💬</span>Aucune conversation pour l’instant.<br>Contacte quelqu’un depuis une annonce !</div>')+note}
-var A=null,AF=[],addrErr=false,tmr,ICO={"Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"};
+var A=null,AF=[],addrErr=false,tmr,ICO={"Téléphones et électronique":"📱","Clés et badges":"🔑","Portefeuilles et papiers":"🪪","Sacs et bagages":"🎒","Vêtements et accessoires":"👕","Bijoux et montres":"💍","Lunettes":"👓","Ordinateurs et tablettes":"💻","Écouteurs et audio":"🎧","Vélos et trottinettes":"🚲","Animaux":"🐾","Autres objets":"📦","Clés":"🔑","Papiers":"🪪","Sacs":"🎒","Électronique":"📱","Autre":"📦"};
 function fd(x){return x?new Date(x).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):""}
 /* ---- Adresses : Base Adresse Nationale (IGN) ---- */
 function addrOk(){if(A||addrErr)return true;$("sug").innerHTML='<p class="note" style="color:var(--pinkt)">Choisis une adresse dans la liste 👆</p>';return false}
