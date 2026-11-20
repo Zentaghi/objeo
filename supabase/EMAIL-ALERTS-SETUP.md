@@ -14,3 +14,12 @@ This Edge Function reuses the same secrets as the existing `hyper-responder` mes
 This sends email in addition to existing in-app notifications. It does not email historical notifications. Existing `hyper-responder` is unchanged.
 
 Note: the anti-duplicate log reserves rows before sending; if the function crashes while processing, an unfinished `processing` row may need manual review. For production-scale guaranteed retries, use a durable queue/outbox.
+
+## Private inventory: « Peut-être que c’est à vous ? 👀 »
+
+1. Run `supabase/2026-11-20-saved-watch-email.sql` (after the email log and visual-score migrations).
+2. Deploy the current `supabase/functions/objeo-alert-responder/index.ts` Edge Function.
+3. **Important:** remove any INSERT webhook for `public.objeo_saved_object_matches`; add an **UPDATE** webhook for that table to the same function, with the same secret authentication. Keep the existing claim and match INSERT webhooks unchanged.
+4. Only visually processed matches with `visual_checked_at IS NOT NULL`, `visual_score >= 45`, and `match_score >= 60` trigger an email. Thresholds are heuristics, not proof of ownership.
+5. The subject is **Objeo : Peut-être que c’est à vous ? 👀**; its link leads to `https://objeo.online/mes-objets.html`.
+6. Verify delivery with two test accounts, inspect function logs and `public.objeo_email_alert_log`. Email delivery requires configured Resend secrets and a verified sending domain.
