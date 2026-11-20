@@ -2,7 +2,7 @@ name: Objeo private visual matching
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 */5 * * *"
 permissions:
   contents: read
 concurrency:
