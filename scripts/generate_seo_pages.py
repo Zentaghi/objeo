@@ -19,7 +19,7 @@ SITEMAP = ROOT / "sitemap.xml"
 BASE = "https://objeo.online"
 API = os.environ.get("SUPABASE_URL", "").rstrip("/")
 KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
-FIELDS = "id,kind,title,category,description,city,happened_on,created_at"
+FIELDS = "id,kind,title,category,description,city,happened_on,created_at,photo_path"
 LIMIT = 500
 MAX_PAGES = 100
 XMLNS = "http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -78,6 +78,11 @@ def page_html(ad):
     category = str(ad.get("category") or "Autre")
     date = str(ad.get("happened_on") or "")[:10]
     city_link = "/?ville=" + urllib.parse.quote(city) + "#annonces"
+    photo_path = str(ad.get("photo_path") or "").strip()
+    if photo_path and not photo_path.startswith("/") and ".." not in photo_path.split("/"):
+        photo_url = API + "/storage/v1/object/public/ad-photos/" + urllib.parse.quote(photo_path, safe="/")
+    else:
+        photo_url = BASE + "/assets/logo.png"
     structured = {
         "@context": "https://schema.org",
         "@type": "WebPage",
@@ -97,6 +102,10 @@ def page_html(ad):
 <link rel="canonical" href="{esc(url)}">
 <meta property="og:type" content="article"><meta property="og:title" content="{esc(heading)}">
 <meta property="og:description" content="{esc(description)}"><meta property="og:url" content="{esc(url)}">
+<meta property="og:site_name" content="Objeo"><meta property="og:locale" content="fr_FR">
+<meta property="og:image" content="{esc(photo_url)}"><meta property="og:image:alt" content="{esc(title)}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{esc(heading)}">
+<meta name="twitter:description" content="{esc(description)}"><meta name="twitter:image" content="{esc(photo_url)}">
 <script type="application/ld+json">{ld}</script>
 <style>body{{margin:0;background:#fff;color:#26313b;font:16px system-ui,sans-serif}}header,main,footer{{max-width:860px;margin:auto;padding:22px}}header{{border-bottom:1px solid #eee}}a{{color:#cf5b12}}h1{{font-size:clamp(28px,5vw,42px)}}.box{{border:1px solid #e9e9e9;border-radius:12px;padding:22px;margin:20px 0}}.cta{{display:inline-block;padding:12px 18px;background:#ff6e14;color:#fff;border-radius:9px;text-decoration:none}}.muted{{color:#65717b}}.desc{{white-space:pre-wrap;overflow-wrap:anywhere}}</style>
 </head><body><header><a href="/">Objeo — Accueil</a></header><main>
