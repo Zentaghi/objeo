@@ -374,5 +374,51 @@ window.onhashchange=function(){show(location.hash.slice(1))};
 function send(e,id){e.preventDefault();$(id).style.display="block";e.target.reset();return false}
 (function(){var q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(window.top===window&&q.get("google_oauth")==="1"&&(q.get("error")||h.get("error"))){try{sessionStorage.setItem("objeo_google_auth_error","Google a refusé de finaliser la session Supabase. Vérifiez le Client Secret Google et les journaux Auth dans Supabase.")}catch(e){}location.replace("/#compte");return;}draw();comp();gate();show(location.hash.slice(1));if(!S.city)openCity();if(sb)initSb();setTimeout(function(){$("splash").classList.add("out")},1900)})();
 </script>
-</body>
+<style id="objeo-publish-wizard-style">
+#pub.wizard-ready .wizard-step{display:none}#pub.wizard-ready .wizard-step.wizard-visible{display:block}
+#pub .wizard-progress{display:flex;gap:8px;margin:8px 0 18px}#pub .wizard-progress span{height:5px;border-radius:8px;flex:1;background:#e8eaed}#pub .wizard-progress span.done{background:#ff6e14}
+#pub .wizard-heading{font-size:1.12rem;font-weight:800;margin:0 0 12px;color:#222b35}
+#pub .wizard-counter{font-size:.83rem;color:#66717d;margin-bottom:8px}
+#pub .wizard-actions{display:flex;gap:10px;margin-top:16px}
+#pub .wizard-actions button{flex:1;min-height:46px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer}
+#pub .wizard-back{border:1px solid #d8dde2;background:white;color:#222b35}
+#pub .wizard-next{border:0;background:#ff6e14;color:white}
+#pub.wizard-ready > button[type=submit],#pub.wizard-ready > .btn.w{display:none}
+#pub .wizard-step label{display:block}
+</style>
+<script id="objeo-publish-wizard-script">
+(function(){
+ function initWizard(){
+  var form=document.getElementById('pub');if(!form||form.classList.contains('wizard-ready'))return;
+  var groups=[['.seg','#pn','#pc','#pt'],['#pd','#pw','#sug'],['#pf']];
+  var headings=['Quel objet avez-vous perdu ou trouvé ?','Où et quand ?','Ajoutez une photo et publiez'];
+  var steps=[];
+  groups.forEach(function(selectors,i){
+   var section=document.createElement('div');section.className='wizard-step';section.dataset.step=String(i);
+   var heading=document.createElement('div');heading.className='wizard-heading';heading.textContent=headings[i];section.appendChild(heading);
+   selectors.forEach(function(selector){var el=form.querySelector(selector);if(!el)return;var node=el.closest('label')||el;if(selector==='.seg'||selector==='#sug')node=el;section.appendChild(node)});
+   form.insertBefore(section,form.firstChild);steps.push(section)
+  });
+  var progress=document.createElement('div');progress.className='wizard-progress';progress.setAttribute('aria-hidden','true');
+  for(var i=0;i<3;i++)progress.appendChild(document.createElement('span'));
+  form.insertBefore(progress,form.firstChild);
+  var counter=document.createElement('div');counter.className='wizard-counter';form.insertBefore(counter,progress);
+  var actions=document.createElement('div');actions.className='wizard-actions';
+  var back=document.createElement('button');back.type='button';back.className='wizard-back';back.textContent='Retour';
+  var next=document.createElement('button');next.type='button';next.className='wizard-next';next.textContent='Continuer';
+  actions.appendChild(back);actions.appendChild(next);
+  var submit=form.querySelector('button[type=submit],button.btn.w');if(submit){submit.type='submit';submit.style.display='none';actions.appendChild(submit)}
+  form.appendChild(actions);
+  var current=0;
+  function show(n){current=n;steps.forEach(function(el,i){el.classList.toggle('wizard-visible',i===n);el.querySelectorAll('input,select,textarea').forEach(function(field){if(field.required)field.disabled=i!==n})});counter.textContent='Étape '+(n+1)+' sur 3';Array.from(progress.children).forEach(function(el,i){el.classList.toggle('done',i<=n)});back.hidden=n===0;next.hidden=n===2;if(submit)submit.style.display=n===2?'block':'none'}
+  function valid(){var fields=steps[current].querySelectorAll('input,select,textarea');for(var i=0;i<fields.length;i++){var field=fields[i];if(field.disabled)continue;if(!field.checkValidity()){field.reportValidity();return false}}return true}
+  back.addEventListener('click',function(){if(current>0)show(current-1)});
+  next.addEventListener('click',function(){if(valid()&&current<2)show(current+1)});
+  form.addEventListener('submit',function(e){if(current!==2){e.preventDefault();e.stopImmediatePropagation();if(valid())show(current+1);return}steps.forEach(function(el){el.querySelectorAll('input,select,textarea').forEach(function(field){field.disabled=false})});if(!form.checkValidity()){e.preventDefault();e.stopImmediatePropagation();for(var i=0;i<steps.length;i++){var invalid=steps[i].querySelector(':invalid');if(invalid){show(i);invalid.reportValidity();break}}}},true);
+  form.classList.add('wizard-ready');show(0);
+  var success=document.getElementById('ok1');if(success&&window.MutationObserver)new MutationObserver(function(){if(success.style.display==='block')show(0)}).observe(success,{attributes:true,attributeFilter:['style']});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initWizard);else initWizard();
+})();
+</script></body>
 </html>
