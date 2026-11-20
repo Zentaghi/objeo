@@ -5,7 +5,7 @@ type EventRecord = { id: string; recipient_id: string; claim_id?: string; found_
 type Payload = { type: string; table: string; schema?: string; record?: EventRecord };
 const SITE = (Deno.env.get("SITE_URL") || "https://objeo.online").replace(/\/$/, "");
 const htmlEscape = (s: string) => s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[c]!);
-const allowed = new Set(["objeo_claim_notifications", "objeo_match_notifications"]);
+const allowed = new Set(["objeo_claim_notifications", "objeo_match_notifications", "objeo_saved_object_matches"]);
 export default {
  fetch: withSupabase({ auth: "secret" }, async (req, ctx) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status:405 });
@@ -41,6 +41,11 @@ export default {
      heading="Votre demande de restitution a été refusée";
      body="Le détenteur n'a pas accepté votre revendication concernant « "+title+" ». Vous pouvez consulter son statut sur Objeo.";
     }
+   } else if (table === "objeo_saved_object_matches") {
+    const {data: ad} = await db.from("ads").select("title").eq("id",real.found_ad_id).maybeSingle();
+    subject="Objeo : votre objet enregistré a peut-être été retrouvé";
+    heading="Une annonce pourrait correspondre à un objet de votre inventaire";
+    body="Une annonce d’objet trouvé"+(ad?.title ? " (« "+htmlEscape(String(ad.title))+" »)" : "")+" ressemble à l’un de vos objets enregistrés. Vérifiez les informations sur Objeo avant toute démarche. Cette alerte ne prouve pas que l’objet vous appartient.";
    } else {
     const {data: ad} = await db.from("ads").select("title").eq("id",real.found_ad_id).maybeSingle();
     subject="Objeo : une correspondance possible !";
