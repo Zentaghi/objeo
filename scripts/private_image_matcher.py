@@ -1,6 +1,6 @@
 # Objeo private image similarity worker
 # Runs server-side with a service-role key; never expose this key to browser code.
-import io, os, sys, logging
+import io, os, logging
 from datetime import datetime, timezone
 import numpy as np
 import requests
@@ -12,8 +12,8 @@ from transformers import CLIPModel, CLIPProcessor
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 URL=os.environ["SUPABASE_URL"]
 KEY=os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-MODEL=os.environ.get("OBJE0_CLIP_MODEL","openai/clip-vit-base-patch32")
-LIMIT=min(int(os.environ.get("OBJE0_IMAGE_LIMIT","30")),100)
+MODEL=os.environ.get("OBJEO_CLIP_MODEL","openai/clip-vit-base-patch32")
+LIMIT=min(int(os.environ.get("OBJEO_IMAGE_LIMIT","30")),100)
 db=create_client(URL,KEY)
 model=CLIPModel.from_pretrained(MODEL).eval()
 processor=CLIPProcessor.from_pretrained(MODEL)
@@ -33,7 +33,7 @@ def embed(bucket,path):
     return vec/(np.linalg.norm(vec)+1e-8)
 def run():
     # Limit work to existing text candidates, so private inventory is not scanned indiscriminately.
-    rows=db.table("objeo_saved_object_matches").select("id,owner_id,saved_object_id,found_ad_id,match_score,visual_checked_at").is_("visual_checked_at","null").order("created_at").limit(LIMIT).execute().data or []
+    rows=db.table("objeo_saved_object_matches").select("id,owner_id,saved_object_id,found_ad_id,match_score,match_reasons,visual_checked_at").is_("visual_checked_at","null").order("created_at").limit(LIMIT).execute().data or []
     saved_cache={};ad_cache={};vectors={}
     for row in rows:
         try:
