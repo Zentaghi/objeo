@@ -290,7 +290,7 @@ async function auth(e){e.preventDefault();if(sb)return authSb(e);var em=$("ae").
 if(mode=="new"){if(S.acc[em]){er.textContent="Cet email a déjà un compte.";er.style.display="block";return false}S.acc[em]={name:$("an").value.trim(),h:h};}
 else if(!S.acc[em]||S.acc[em].h!=h){er.textContent="Email ou mot de passe incorrect.";er.style.display="block";return false}
 S.user={name:S.acc[em].name,email:em};save();comp();gate();draw();return false}
-function logout(){if(sb)sb.auth.signOut();S.user=null;save();comp();gate();draw()}
+function logout(){if(sb)sb.auth.signOut();S.user=null;save();comp();gate();draw();if(window.parent!==window&&window.parent!==null){var selected=location.hash.slice(1);if(V.includes(selected))show(selected)}}
 var cur=null;
 function findAd(id){return all_().filter(function(d){return d[7]==id})[0]}
 function onCt(e){var b=e.target.closest("[data-ct]");if(b){var d=findAd(b.dataset.ct);if(d){cur=d;openCt()}return}var c=e.target.closest("[data-ad]");if(c){var d2=findAd(c.dataset.ad);if(d2){cur=d2;openAd()}}}
@@ -373,7 +373,7 @@ var r=all_().filter(function(d){return d[6]==S.user.email});
 el.innerHTML='<button class="link" onclick="go(\'compte\')">← Retour</button><h2>Mes annonces 📋</h2><p class="sub">Touche une annonce pour dire si ton objet est retrouvé.</p>'+(r.length?r.map(row).join(""):empty())}
 function show(n){if(V.indexOf(n)<0)n="accueil";V.forEach(function(v){$("v-"+v).classList.toggle("on",v==n)});
 document.querySelectorAll(".bar button").forEach(function(b){b.classList.toggle("on",b.dataset.v==n)});window.scrollTo(0,0);if(n!="messages")tk=null;else msgs();if(n=="mine")mine()}
-function go(n,t){if(t){var r=document.querySelector("input[name=t][value="+t+"]");if(r)r.checked=true}location.hash=n}
+function go(n,t){if(t){var r=document.querySelector("input[name=t][value="+t+"]");if(r)r.checked=true}location.hash=n;show(n)}
 document.querySelector(".bar").onclick=function(e){var b=e.target.closest("button");if(b)go(b.dataset.v)};
 window.onhashchange=function(){show(location.hash.slice(1))};
 function send(e,id){e.preventDefault();$(id).style.display="block";e.target.reset();return false}
