@@ -151,38 +151,53 @@ async function loadPhotoModel(){
 }
 function translatePhotoClass(english){
  for(const [pattern,name] of photoTranslations)if(pattern.test(english))return name;
- // ImageNet sometimes reports objects that are not useful for lost-and-found. Keep uncertainty visible.
  return '';
+}
+const fallbackPhotoCategories=['téléphone','portefeuille','clés','sac','valise','ordinateur portable','lunettes','montre','écouteurs','bijoux','vêtement','autre objet'];
+function showPhotoSuggestions(options,needsHelp){
+ const container=$('photoChoices');container.replaceChildren();
+ for(const suggestion of options){
+  const button=document.createElement('button');button.type='button';
+  button.textContent=suggestion.confidence==null?suggestion.value:suggestion.value+' · '+suggestion.confidence+' % (score du modèle)';
+  button.onclick=()=>{
+   if(suggestion.value==='autre objet'){$('object').focus();photoSetStatus('Décrivez votre objet dans le champ ci-dessous.')}
+   else{$('object').value=suggestion.value;$('object').focus();photoSetStatus('Catégorie sélectionnée. Précisez les détails et la ville pour améliorer la recherche.')}
+  };
+  container.appendChild(button);
+ }
+ $('photoSuggestions').querySelector('strong').textContent=needsHelp?'La photo n’a pas pu être identifiée : choisissez une catégorie':'Suggestions de reconnaissance (à confirmer)';
+ $('photoSuggestions').classList.remove('hidden');
 }
 $('analyzePhoto').addEventListener('click',async()=>{
  const image=$('objectPreview');if(!photoObjectUrl||!$('objectPhoto').files[0])return;
  const thisEpoch=photoEpoch,btn=$('analyzePhoto');btn.disabled=true;$('photoSuggestions').classList.add('hidden');
- photoSetStatus('Chargement de l’IA dans votre navigateur (première utilisation plus longue)…');
+ photoSetStatus('Chargement de l’IA dans votre navigateur (la première fois peut être plus longue)…');
  try{
   const model=await loadPhotoModel();
   if(thisEpoch!==photoEpoch)return;
   if(!image.complete||!image.naturalWidth)await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Image illisible'))});
   photoSetStatus('Analyse de la photo en cours…');
-  const predictions=await model.classify(image,5);
+  const predictions=await model.classify(image,10);
   if(thisEpoch!==photoEpoch)return;
   const options=[],seen=new Set();
   for(const p of predictions){
    const value=translatePhotoClass(p.className);
-   if(!value||seen.has(value)||p.probability<0.08)continue;
+   if(!value||seen.has(value)||p.probability<0.03)continue;
    seen.add(value);options.push({value,confidence:Math.round(p.probability*100)});
   }
-  const container=$('photoChoices');container.replaceChildren();
-  for(const suggestion of options){
-   const button=document.createElement('button');button.type='button';
-   button.textContent=suggestion.value+' · '+suggestion.confidence+' % (modèle)';
-   button.onclick=()=>{$('object').value=suggestion.value;$('object').focus();photoSetStatus('Proposition appliquée. Ajoutez la marque, la couleur et la ville avant de rechercher.')};
-   container.appendChild(button);
+  if(!options.length){
+   showPhotoSuggestions(fallbackPhotoCategories.map(value=>({value,confidence:null})),true);
+   photoSetStatus('Le modèle ne reconnaît pas clairement cet objet. Sélectionnez vous-même une catégorie ci-dessous ou saisissez son nom. Votre photo reste privée.');
+  }else{
+   showPhotoSuggestions(options,false);
+   photoSetStatus('Analyse terminée. Les scores sont indicatifs : vérifiez la catégorie avant de chercher.');
   }
-  if(!options.length){photoSetStatus('L’IA n’a pas reconnu un objet avec assez de fiabilité. Décrivez-le manuellement : vos recherches restent disponibles.');return}
-  $('photoSuggestions').classList.remove('hidden');
-  photoSetStatus('Analyse terminée. Sélectionnez une suggestion seulement si elle correspond à votre objet.');
- }catch(error){if(thisEpoch===photoEpoch)photoSetStatus('Reconnaissance photo indisponible : '+error.message+'. Vous pouvez toujours effectuer une recherche textuelle.')}
- finally{if(thisEpoch===photoEpoch)btn.disabled=false}
+ }catch(error){
+  if(thisEpoch===photoEpoch){
+   showPhotoSuggestions(fallbackPhotoCategories.map(value=>({value,confidence:null})),true);
+   photoSetStatus('Reconnaissance photo indisponible. Choisissez une catégorie ou saisissez votre objet pour continuer.');
+  }
+ }finally{if(thisEpoch===photoEpoch)btn.disabled=false}
 });
 
 const stop=new Set(['le','la','les','de','des','du','un','une','et','avec','dans','sur','mon','ma','mes','perdu','perdue','objet','objets','trouve','trouvé','trouvés']);
