@@ -15,6 +15,26 @@ main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border
 .form-actions{display:flex;align-items:center;gap:13px;margin-top:23px;flex-wrap:wrap}.main-btn{border:0;padding:14px 23px;border-radius:12px;background:#ff6e14;color:white;font-weight:850;box-shadow:0 7px 17px #ff6e1426}.main-btn:hover{background:#e85f0d}.muted{font-size:12px;color:#718598;line-height:1.5}.safety{margin-top:16px;background:#f6f9fc;border:1px solid #e1ebf3;border-radius:12px;padding:13px;color:#5e7488;font-size:13px;line-height:1.55}
 .results{margin-top:28px}.results-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}.results-head h2{margin:0 0 7px}.query-text{font-size:13px;color:#688096;overflow-wrap:anywhere}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.source{padding:20px;border-radius:16px;border:1px solid #dde8f2;background:#fff;display:flex;flex-direction:column;gap:10px;min-width:0}.source-top{display:flex;align-items:center;gap:12px}.source-icon{background:#f2f7fc;width:43px;height:43px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px}.source h3{margin:0;font-size:17px}.source p{font-size:13px;color:#678096;line-height:1.5;margin:0;flex:1}.source-button{border:1px solid #d3e3f2;background:#eef6ff;color:#14558b;border-radius:10px;padding:11px 12px;font-size:13px;font-weight:850;text-align:center}.source-button:hover{background:#deeeff}.source small{color:#7a8d9c;font-size:11px}.hidden{display:none!important}.note{margin-top:24px;padding:19px;border-radius:14px;border:1px solid #e2eaf3;background:#fff;font-size:13px;line-height:1.7;color:#5e758b}.note strong{color:#264761}.tip{background:#fff4e9;border:1px solid #f6ddc3;padding:15px;border-radius:12px;color:#8e4d20;margin-top:17px;font-size:13px;line-height:1.55}
 @media(max-width:650px){.shell{padding:0 16px}.top .shell{min-height:65px}.brand{font-size:26px}.back{font-size:12px}.hero{padding:34px 0 29px}.fields,.source-grid{grid-template-columns:1fr}.panel{padding:20px}.form-actions{align-items:stretch}.main-btn{width:100%}}
+
+/* Search+ beta v2: guided results, transparent sources and accessible mobile filters */
+.share-button{border:1px solid #d5e2ee;border-radius:11px;background:white;color:#264b6e;font-weight:800;font-size:13px;padding:12px 14px}
+.share-button:hover{background:#eef5ff}
+.priority-tip{padding:14px 16px;margin:14px 0 20px;border:1px solid #f2d5b5;border-radius:13px;background:#fff7ed;color:#874c1f;line-height:1.55;font-size:14px}
+.priority-tip:empty{display:none}
+.result-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 16px}
+.filter-buttons{display:flex;gap:7px;overflow-x:auto;max-width:100%;padding:3px 0 7px}
+.filter-buttons button{flex:none;border:1px solid #d8e4ef;border-radius:99px;background:#fff;color:#4a6881;padding:9px 13px;font-weight:800;font-size:12px;white-space:nowrap}
+.filter-buttons button.active,.filter-buttons button[aria-pressed="true"]{background:#173e68;color:white;border-color:#173e68}
+.result-count{font-size:12px;color:#6b8194;font-weight:750}
+.source-top .source-icon{flex:none}.source-category{margin-left:auto;font-size:10px;color:#587891;background:#eff5fa;border-radius:99px;padding:5px 8px;font-weight:800;white-space:nowrap}
+.source-button:focus-visible,.filter-buttons button:focus-visible,.share-button:focus-visible{outline:3px solid #ffb17f;outline-offset:2px}
+.source-buttons{display:flex;gap:8px;flex-wrap:wrap}.source-buttons a{flex:1;min-width:125px}
+.source .source-button.secondary{background:#fff;color:#426b8d}.source .source-button.secondary:hover{background:#f4f8fc}
+.source.is-recommended{border-color:#f0c99f;background:linear-gradient(180deg,#fff9f2,#fff 60%)}
+.source .recommendation{font-weight:850;color:#c6631a;font-size:11px}
+.no-results{background:#fff;padding:20px;border-radius:12px;color:#60758a;grid-column:1/-1}
+.inline-link{display:inline-block;color:#c85411;font-weight:850;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:650px){.result-toolbar{align-items:stretch}.filter-buttons{margin-right:-16px;padding-right:16px}.share-button{width:100%}.source-category{font-size:9px}.source{padding:17px}}
 </style>
 </head>
 <body>
@@ -27,54 +47,131 @@ main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border
 <div><label for="city">Ville ou secteur</label><input id="city" maxlength="80" placeholder="Ex. Rouen, Paris, 76000" autocomplete="address-level2"></div>
 <div><label for="type">Catégorie</label><select id="type"><option value="">Toutes catégories</option><option value="téléphone">Téléphone et électronique</option><option value="portefeuille">Portefeuille et papiers</option><option value="clés">Clés et badges</option><option value="sac">Sac et bagages</option><option value="bijoux">Bijoux et montres</option><option value="vêtement">Vêtements</option><option value="autre">Autre</option></select></div>
 <div class="field-full"><label for="details">Détails utiles (facultatif)</label><input id="details" maxlength="120" placeholder="Ex. noir, Samsung, gare, étui rouge"></div>
-<div class="field-full"><label for="where">Où l'avez-vous perdu ?</label><select id="where"><option value="">Je ne sais pas / ailleurs</option><option value="sncf">Dans un train ou une gare SNCF</option><option value="ratp">Dans le métro, RER, bus ou tram parisien</option><option value="city">Dans la rue ou un lieu public</option></select></div>
+<div class="field-full"><label for="where">Où l'avez-vous perdu ?</label><select id="where"><option value="">Je ne sais pas / ailleurs</option><option value="sncf">Dans un train ou une gare SNCF</option><option value="ratp">Dans le métro, RER, bus ou tram en Île-de-France</option><option value="city">Dans la rue ou un lieu public</option><option value="shop">Dans un commerce, restaurant ou établissement</option></select></div>
 </div><div class="form-actions"><button class="main-btn" type="submit">🔎 Préparer mes recherches</button><span class="muted">Gratuit · Sans collecte d'annonces tierces</span></div></form>
 <div class="safety">🔒 <strong>Confidentialité :</strong> n'indiquez pas de numéro de série, d'adresse complète, de téléphone, de numéro de carte ou d'autre donnée sensible. Les mots-clés seront transmis au moteur externe uniquement si vous cliquez sur son lien.</div>
 </section>
-<section id="results" class="results hidden" aria-live="polite"><div class="results-head"><div><h2>Vos pistes de recherche</h2><div id="summary" class="query-text"></div></div><span class="tag">RECHERCHE ASSISTÉE · BÊTA</span></div><div id="sourceGrid" class="source-grid"></div><div class="tip"><strong>Important :</strong> ces liens lancent une recherche sur d'autres sites ou ouvrent leur service officiel. Objeo n'a pas accès à leurs bases privées et ne peut pas garantir qu'un objet a été retrouvé. Une déclaration sur la plateforme concernée peut être nécessaire.</div></section>
-<div class="note"><strong>Comment ça marche ?</strong> Objeo adapte les mots-clés à votre description et propose des recherches Google/Bing sur des domaines spécifiques. Il n'aspire ni photos ni annonces externes. Cette bêta est une assistance à la recherche, pas une vérification automatique par IA des résultats des autres plateformes.</div>
+<section id="results" class="results hidden" aria-live="polite"><div class="results-head"><div><h2>Vos pistes de recherche</h2><div id="summary" class="query-text"></div></div><button id="copySearch" class="share-button" type="button">↗ Partager cette recherche</button></div><div id="priorityTip" class="priority-tip" role="status"></div><div class="result-toolbar"><div class="filter-buttons" role="group" aria-label="Filtrer les recherches"><button type="button" class="active" data-filter="all" aria-pressed="true">Toutes</button><button type="button" data-filter="recommended" aria-pressed="false">⭐ Conseillées</button><button type="button" data-filter="sites" aria-pressed="false">Sites spécialisés</button><button type="button" data-filter="transport" aria-pressed="false">Transports</button><button type="button" data-filter="web" aria-pressed="false">Internet</button></div><span id="resultCount" class="result-count"></span></div><div id="sourceGrid" class="source-grid"></div><div class="tip"><strong>Important :</strong> ces liens lancent une recherche sur d'autres sites ou ouvrent leur service officiel. Objeo n'a pas accès à leurs bases privées et ne peut pas garantir qu'un objet a été retrouvé. Une déclaration sur la plateforme concernée peut être nécessaire.</div></section>
+<div class="note"><strong>Comment ça marche ?</strong> Objeo adapte les mots-clés à votre description et propose des recherches Google/Bing sur des domaines spécifiques. Les sites externes s'ouvrent seulement à votre demande. Cette bêta n'aspire ni photos ni annonces et ne réalise pas de comparaison IA avec les bases externes. <a href="/mes-objets.html" class="inline-link">Enregistrer mes objets sur Objeo →</a></div>
 </main>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-for(const key of ['object','city','details','type','where'])if(params.has(key)&&$(key))$(key).value=params.get(key).slice(0,$(key).maxLength>0?$(key).maxLength:100);
+const fields=['object','city','details','type','where'];
+for(const key of fields){
+ const field=$(key),value=params.get(key);
+ if(value!=null&&field){
+  const max=field.maxLength>0?field.maxLength:120;
+  if(field.tagName==='SELECT'){if([...field.options].some(o=>o.value===value))field.value=value}
+  else field.value=value.slice(0,max);
+ }
+}
 const stop=new Set(['le','la','les','de','des','du','un','une','et','avec','dans','sur','mon','ma','mes','perdu','perdue','objet','objets','trouve','trouvé','trouvés']);
+const frenchAliases={portable:'téléphone',smartphone:'téléphone',iphone:'téléphone',cellulaire:'téléphone',clef:'clés',clefs:'clés',clé:'clés',carte:'carte',sacoche:'sac',bagage:'sac',valise:'sac',wallet:'portefeuille',wallets:'portefeuille'};
 function clean(value){return String(value||'').trim().replace(/\s+/g,' ').slice(0,120)}
-function terms(value){return clean(value).normalize('NFKC').split(/[\s,;]+/).filter(word=>word.length>1&&!stop.has(word.toLowerCase())).slice(0,14).join(' ')}
+function terms(value){
+ return clean(value).normalize('NFKC').split(/[\s,;]+/)
+  .filter(word=>word.length>1&&!stop.has(word.toLocaleLowerCase('fr')))
+  .slice(0,16).join(' ');
+}
+function queryVariants(object,type,details){
+ const title=terms(object),extra=terms(details),category=terms(type);
+ const broaden=title.toLocaleLowerCase('fr').split(/\s+/).map(w=>frenchAliases[w]||w).join(' ');
+ const main=[title,extra].filter(Boolean).join(' ');
+ const alternate=[broaden,category].filter(Boolean).join(' ');
+ return {main:main||object,alternate:alternate||main};
+}
 function google(q){return 'https://www.google.com/search?q='+encodeURIComponent(q)}
 function bing(q){return 'https://www.bing.com/search?q='+encodeURIComponent(q)}
-function makeUrl(base){return base}
-function externalLink(title,icon,desc,url,subtitle){return {title,icon,desc,url,subtitle:subtitle||'Accès à un site externe'}}
-const destinations=[
- {title:'France Objets Trouvés',icon:'🇫🇷',domain:'franceobjetstrouves.fr',direct:'https://www.franceobjetstrouves.fr/',desc:'Rechercher des pages publiques liées à votre objet, puis consulter le service officiel pour une déclaration.'},
- {title:'Troov',icon:'🔎',domain:'troov.com',direct:'https://troov.com/',desc:'Trouver des pages publiques pertinentes ; le service peut demander une déclaration pour rechercher des correspondances.'},
- {title:'Objets trouvés SNCF',icon:'🚆',domain:'garesetconnexions.sncf',direct:'https://www.garesetconnexions.sncf/fr/service-client/a-vos-cotes/objet-perdu-trouve',desc:'Le service officiel des objets perdus en gare ou dans les trains.'},
- {title:'RATP et Île-de-France',icon:'🚇',domain:'ratp.franceobjetstrouves.fr',direct:'https://ratp.franceobjetstrouves.fr/',desc:'Déclarer un objet perdu sur le réseau de transports francilien.'}
+function link(title,icon,desc,url,category,opts={}){
+ return {title,icon,desc,url,category,recommended:!!opts.recommended,direct:opts.direct||null,
+  directLabel:opts.directLabel||'Accéder au service',subtitle:opts.subtitle||''};
+}
+const sources=[
+ {title:'France Objets Trouvés',icon:'🇫🇷',domain:'franceobjetstrouves.fr',direct:'https://www.franceobjetstrouves.fr/',category:'sites',desc:'Chercher les pages publiques indexées et accéder au service pour déclarer votre objet.'},
+ {title:'Troov',icon:'🔎',domain:'troov.com',direct:'https://troov.com/',category:'sites',desc:'Consulter les informations disponibles et faire une déclaration de perte sur Troov.'},
+ {title:'SNCF — Gares & Connexions',icon:'🚆',domain:'garesetconnexions.sncf',direct:'https://www.garesetconnexions.sncf/fr/service-client/a-vos-cotes/objet-perdu-trouve',category:'transport',desc:'Effectuer une déclaration officielle pour un objet perdu en gare ou dans un train.'},
+ {title:'RATP — Objets perdus',icon:'🚇',domain:'ratp.fr',direct:'https://www.ratp.fr/aide-contact/questions/pendant-mon-trajet/perte-titre-objet/perdu-trouve-objet-transports-que-faire',category:'transport',desc:'Consulter la démarche officielle et déclarer un objet perdu dans les transports franciliens.'}
 ];
-function resultCard(item){const article=document.createElement('article');article.className='source';const top=document.createElement('div');top.className='source-top';const badge=document.createElement('span');badge.className='source-icon';badge.textContent=item.icon;const heading=document.createElement('h3');heading.textContent=item.title;top.append(badge,heading);const p=document.createElement('p');p.textContent=item.desc;const link=document.createElement('a');link.className='source-button';link.textContent='Ouvrir la recherche ↗';link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';const foot=document.createElement('small');foot.textContent=item.subtitle;article.append(top,p,link,foot);return article}
-function search(ev){if(ev)ev.preventDefault();const object=clean($('object').value),city=clean($('city').value),details=clean($('details').value),type=clean($('type').value),where=$('where').value;if(object.length<2){$('object').focus();return}
- const core=terms([object,type,details].join(' '))||object,cityTerms=terms(city),q=[core,cityTerms,'objet trouvé'].filter(Boolean).join(' '),grid=$('sourceGrid');grid.replaceChildren();
- const items=[
- externalLink('Google — Recherche générale','🌐','Explorer les pages d’objets trouvés référencées sur Internet.',google(q),'Recherche Google préremplie'),
- externalLink('Bing — Recherche générale','🔍','Compléter la recherche avec un second moteur.',bing(q),'Recherche Bing préremplie')
- ];
- for(const dest of destinations){
- const targeted=[core,cityTerms,'objet trouvé','site:'+dest.domain].filter(Boolean).join(' ');
- items.push(externalLink(dest.title,dest.icon,dest.desc,google(targeted),'Recherche Google limitée à '+dest.domain));
- items.push(externalLink(dest.title+' — Service officiel','↗','Ouvrir le site officiel pour consulter les démarches et déposer une déclaration.',dest.direct,'Page du service · recherche manuelle'));
+let results=[],activeFilter='all';
+function makeCard(item){
+ const article=document.createElement('article');article.className='source'+(item.recommended?' is-recommended':'');
+ const head=document.createElement('div');head.className='source-top';
+ const icon=document.createElement('span');icon.className='source-icon';icon.textContent=item.icon;
+ const h=document.createElement('h3');h.textContent=item.title;
+ const type=document.createElement('span');type.className='source-category';type.textContent={sites:'Site spécialisé',transport:'Transport',web:'Internet'}[item.category]||'Recherche';
+ head.append(icon,h,type);
+ const p=document.createElement('p');p.textContent=item.desc;
+ article.append(head);
+ if(item.recommended){const rec=document.createElement('div');rec.className='recommendation';rec.textContent='⭐ Conseillé pour votre situation';article.append(rec)}
+ article.append(p);
+ const buttons=document.createElement('div');buttons.className='source-buttons';
+ const main=document.createElement('a');main.className='source-button';main.target='_blank';main.rel='noopener noreferrer';main.href=item.url;main.textContent=item.category==='web'?'Ouvrir la recherche ↗':'Rechercher sur le web ↗';buttons.append(main);
+ if(item.direct){
+  const direct=document.createElement('a');direct.className='source-button secondary';direct.target='_blank';direct.rel='noopener noreferrer';direct.href=item.direct;direct.textContent=item.directLabel+' ↗';buttons.append(direct);
  }
- if(where==='sncf')items.unshift(externalLink('Priorité : SNCF','🚆','Votre perte concerne une gare ou un train : commencez par le service officiel.',destinations[2].direct,'Déclaration SNCF'));
- if(where==='ratp')items.unshift(externalLink('Priorité : RATP','🚇','Votre perte concerne les transports franciliens : commencez par le service de déclaration.',destinations[3].direct,'Déclaration RATP'));
- if(where==='city')items.push(externalLink('Services municipaux','🏛️','Recherchez le service des objets trouvés de votre mairie ou de votre ville.',google(['service objets trouvés mairie',cityTerms].filter(Boolean).join(' ')),'Recherche des services locaux'));
- for(const item of items)grid.append(resultCard(item));
- $('summary').textContent='Recherche : « '+core+' »'+(city?' · '+city:'');
+ article.append(buttons);
+ if(item.subtitle){const small=document.createElement('small');small.textContent=item.subtitle;article.append(small)}
+ return article;
+}
+function renderCards(){
+ const display=results.filter(r=>activeFilter==='all'||(activeFilter==='recommended'&&r.recommended)||r.category===activeFilter);
+ const grid=$('sourceGrid');grid.replaceChildren();
+ for(const item of display)grid.append(makeCard(item));
+ if(!display.length){const msg=document.createElement('p');msg.className='no-results';msg.textContent='Aucune piste dans cette catégorie. Essayez « Toutes ».';grid.append(msg)}
+ $('resultCount').textContent=display.length+' piste'+(display.length>1?'s':'');
+ document.querySelectorAll('[data-filter]').forEach(b=>{
+  const on=b.dataset.filter===activeFilter;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));
+ });
+}
+function prioritize(city,where){
+ if(where==='sncf')return '🚆 Votre objet a été perdu dans un train ou en gare : commencez par une déclaration SNCF.';
+ if(where==='ratp')return '🚇 Perte dans les transports franciliens : consultez en priorité les démarches RATP.';
+ if(where==='city')return '🏛️ Un objet perdu dans l’espace public peut être confié au service des objets trouvés de la commune.';
+ if(where==='shop')return '🏪 Contactez directement l’établissement où l’objet a été perdu, puis vérifiez les plateformes partenaires.';
+ return city?'📍 Recherche adaptée à '+city+'. Pensez aussi au service municipal des objets trouvés.':'💡 Précisez une ville ou un lieu de perte pour obtenir des pistes plus ciblées.';
+}
+function search(event){
+ if(event)event.preventDefault();
+ const object=clean($('object').value),city=clean($('city').value),details=clean($('details').value),type=clean($('type').value),where=$('where').value;
+ if(object.length<2){$('object').focus();return}
+ const {main,alternate}=queryVariants(object,type,details),cityTerms=terms(city),q=[main,cityTerms,'objet trouvé'].filter(Boolean).join(' ');
+ const list=[
+  link('Google — Recherche générale','🌐','Explorer les pages d’objets trouvés indexées sur Internet.',google(q),'web',{subtitle:'Mots-clés adaptés à votre description'}),
+  link('Bing — Recherche générale','🔍','Compléter la recherche avec un second moteur indépendant.',bing(q),'web'),
+  link('Google — Recherche élargie','🧭','Essayer des termes alternatifs pour retrouver davantage de pages pertinentes.',google([alternate,cityTerms,'objet retrouvé'].filter(Boolean).join(' ')),'web')
+ ];
+ for(const source of sources){
+  const targeted=[main,cityTerms,'objet trouvé','site:'+source.domain].filter(Boolean).join(' ');
+  const recommended=(where==='sncf'&&source.title.startsWith('SNCF'))||(where==='ratp'&&source.title.startsWith('RATP'))||((where==='shop'||!where)&&source.category==='sites');
+  list.push(link(source.title,source.icon,source.desc,google(targeted),source.category,{recommended,direct:source.direct,directLabel:'Site officiel',subtitle:'Recherche Google limitée à '+source.domain}));
+ }
+ if(where==='city'||cityTerms){
+  list.push(link('Objets trouvés de la mairie','🏛️','Trouver le service municipal ou les démarches d’objets trouvés pour votre commune.',google(['service objets trouvés mairie',cityTerms].filter(Boolean).join(' ')),'sites',{recommended:where==='city'}));
+ }
+ if(where==='shop'){
+  list.push(link('Établissements proches','🏪','Identifier le commerce ou le lieu où l’objet a été perdu pour le contacter.',google(['objets trouvés',cityTerms,'restaurant commerce établissement'].filter(Boolean).join(' ')),'sites',{recommended:true}));
+ }
+ results=list.sort((a,b)=>Number(b.recommended)-Number(a.recommended));
+ activeFilter='all';renderCards();
+ $('summary').textContent='« '+main+' »'+(city?' · '+city:'')+' · '+results.length+' pistes';
+ $('priorityTip').textContent=prioritize(city,where);
  $('results').classList.remove('hidden');
- const url=new URL(location.href);for(const key of ['object','city','details','type','where']){const v=$(key).value;if(v)url.searchParams.set(key,v);else url.searchParams.delete(key)}history.replaceState(null,'',url.pathname+url.search);
- $('results').scrollIntoView({behavior:'smooth',block:'start'});
+ const url=new URL(window.location.href);
+ for(const key of fields){const value=$(key).value;if(value)url.searchParams.set(key,value);else url.searchParams.delete(key)}
+ history.replaceState(null,'',url.pathname+url.search);
+ if(event)$('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('searchForm').addEventListener('submit',search);
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;renderCards()}));
+$('copySearch').addEventListener('click',async()=>{
+ const button=$('copySearch'),url=location.href;
+ try{if(navigator.share){await navigator.share({title:'Ma recherche Objeo Search+',url});return}await navigator.clipboard.writeText(url);button.textContent='✓ Lien copié';}
+ catch(e){if(e.name==='AbortError')return;try{await navigator.clipboard.writeText(url);button.textContent='✓ Lien copié'}catch{window.prompt('Copiez votre lien de recherche :',url)}}
+ setTimeout(()=>button.textContent='↗ Partager cette recherche',2500);
+});
 if(params.get('object')?.trim().length>=2)search();
 })();
 </script>
