@@ -53,7 +53,7 @@ function closeLegacy(){objeoPendingLegacyView=null;$('safetyActions').style.disp
 async function openModal(type){if(type==='publish'){const ctx=await requireObjeoUser();if(!ctx)return;openLegacy('signaler');return}openLegacy('compte')}
 
 
-async function requireObjeoUser(){const w=legacyWindow();if(!w?.sb){toast('Connexion indisponible');return null}const {data,error}=await w.sb.auth.getUser();if(error||!data?.user){toast('Connectez-vous ou créez un compte gratuit pour continuer.');openLegacy('compte');return null}return {sb:w.sb,user:data.user}}
+async function requireObjeoUser(){let w=legacyWindow();if(!w?.sb){openLegacy('compte');for(let attempt=0;attempt<30&&!w?.sb;attempt++){await new Promise(resolve=>setTimeout(resolve,200));w=legacyWindow()}if(!w?.sb){toast('Connexion en cours de chargement. Réessayez dans quelques instants.');return null}}const {data,error}=await w.sb.auth.getUser();if(error||!data?.user){toast('Connectez-vous ou créez un compte gratuit pour continuer.');openLegacy('compte');return null}return {sb:w.sb,user:data.user}}
 function safetyModal(html){let modal=$('aiMatchesModal');if(modal)modal.remove();modal=document.createElement('div');modal.id='aiMatchesModal';modal.className='ai-match-overlay';modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.appendChild(modal);modal.innerHTML='<section class="ai-match-panel" role="dialog" aria-modal="true"><button class="ai-match-close" onclick="document.getElementById(\'aiMatchesModal\').remove()">✕ Fermer</button>'+html+'</section>';return modal}
 async function openMessageReport(adId){
  const ctx=await requireObjeoUser();if(!ctx)return;
