@@ -94,3 +94,31 @@ begin
 end $$;
 revoke all on function public.objeo_decide_claim(uuid,boolean) from public,anon;
 grant execute on function public.objeo_decide_claim(uuid,boolean) to authenticated;
+
+-- Compatibility with the original "Objet rendu" action in the classic interface.
+-- This operation closes the listing WITHOUT deleting messages or claims.
+-- It is deliberately restricted to the publishing user.
+create or replace function public.objeo_mark_returned(p_ad_id uuid)
+returns void language plpgsql security definer set search_path = ''
+as $$
+declare v_ad record; v_counted integer;
+begin
+ if (select auth.uid()) is null then raise exception 'Connexion requise'; end if;
+ select id,user_id,kind,status into v_ad from public.ads where id=p_ad_id for update;
+ if not found then raise exception 'Annonce introuvable'; end if;
+ if (select auth.uid()) is distinct from v_ad.user_id then raise exception 'Accès refusé'; end if;
+ if v_ad.kind<>'found' then raise exception 'Seuls les objets trouvés peuvent être restitués'; end if;
+ if v_ad.status<>'open' then raise exception 'Annonce déjà clôturée'; end if;
+ update public.ads set status='returned' where id=p_ad_id;
+ insert into public.objeo_restitution_counted_ads(ad_id,poster_id)
+ values(p_ad_id,v_ad.user_id) on conflict(ad_id) do nothing;
+ get diagnostics v_counted = row_count;
+ if v_counted>0 then
+   insert into public.objeo_user_item_stats(user_id,returned_count,updated_at)
+   values(v_ad.user_id,1,now())
+   on conflict(user_id) do update
+     set returned_count=public.objeo_user_item_stats.returned_count+1,updated_at=now();
+ end if;
+end $$;
+revoke all on function public.objeo_mark_returned(uuid) from public,anon;
+grant execute on function public.objeo_mark_returned(uuid) to authenticated;
