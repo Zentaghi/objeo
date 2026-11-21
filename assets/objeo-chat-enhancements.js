@@ -65,6 +65,7 @@ async function objeoRealtimeRefreshThread(){
 function objeoRealtimeMessage(event){
  const m=event?.new;if(!m?.id||!m.conversation_id)return;
  const id=String(m.id),cid=String(m.conversation_id);
+ objeoNotifyIncomingMessage(m);
  // Ignore all events that aren't visible for this user, as enforced by Supabase RLS.
  if(objeoRealtimeActiveThread===cid&&objeoRealtimeThreadCtx&&objeoRealtimeThreadIdentity&&document.getElementById('objeoChatMessages')){
    const thread=document.getElementById('objeoChatMessages');
@@ -116,6 +117,24 @@ window.openObjeoPhonePreferences=async function(){
  objeoWorkspace('Coordonnées de restitution 🔒','<p>Votre adresse e-mail peut être communiquée à une personne dont vous avez <strong>accepté</strong> la revendication. Le téléphone reste facultatif et désactivé par défaut.</p><form id="objeoContactPrefs"><label for="objeoContactPhone">Téléphone facultatif</label><input id="objeoContactPhone" type="tel" autocomplete="tel" maxlength="25" placeholder="+33 6 12 34 56 78" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"><label style="display:flex;gap:10px;align-items:flex-start;margin:12px 0"><input type="checkbox" id="objeoSharePhone" style="margin-top:5px"><span>Autoriser le partage de ce numéro uniquement après acceptation d’une revendication</span></label><button type="submit" class="primary">Enregistrer mes préférences</button><p id="objeoPrefsFeedback" role="status"></p></form>');
  const form=document.getElementById('objeoContactPrefs'),feedback=document.getElementById('objeoPrefsFeedback');const r=await ctx.sb.from('objeo_contact_preferences').select('phone,share_phone_after_acceptance').eq('user_id',ctx.user.id).maybeSingle();if(!form.isConnected)return;if(r.error){feedback.textContent='Préférences non disponibles : vérifiez la migration Supabase.';form.querySelector('button[type=submit]').disabled=true;return}if(r.data){form.querySelector('#objeoContactPhone').value=r.data.phone||'';form.querySelector('#objeoSharePhone').checked=!!r.data.share_phone_after_acceptance}
  form.onsubmit=async e=>{e.preventDefault();const phone=form.querySelector('#objeoContactPhone').value.trim(),share=form.querySelector('#objeoSharePhone').checked;feedback.textContent='Enregistrement…';if(share&&!phone){feedback.textContent='Saisissez un numéro avant d’autoriser le partage.';return}const result=await ctx.sb.from('objeo_contact_preferences').upsert({user_id:ctx.user.id,phone:phone||null,share_phone_after_acceptance:share&&!!phone,updated_at:new Date().toISOString()},{onConflict:'user_id'});feedback.textContent=result.error?'Enregistrement impossible : '+result.error.message:'Préférences enregistrées. Le numéro restera privé sauf pour une revendication acceptée.'}
+};
+
+const objeoAlertPreferenceKey='objeo_message_alerts_optin_v1';
+function objeoAlertsEnabled(){try{return localStorage.getItem(objeoAlertPreferenceKey)==='yes'}catch(e){return false}}
+function objeoAlertSupported(){return typeof Notification!=='undefined'&&window.isSecureContext}
+async function objeoEnableAlerts(){if(!objeoAlertSupported())return{ok:false,message:'Ce navigateur ne prend pas en charge ces alertes. Essayez un navigateur compatible en HTTPS.'};let permission=Notification.permission;if(permission==='default')permission=await Notification.requestPermission();if(permission!=='granted')return{ok:false,message:'Autorisation refusée ou indisponible. Vous pouvez la modifier dans les réglages du navigateur.'};try{localStorage.setItem(objeoAlertPreferenceKey,'yes')}catch(e){return{ok:false,message:'Impossible d’enregistrer la préférence sur cet appareil.'}}return{ok:true,message:'Alertes activées sur cet appareil, lorsque Objeo reste ouvert en arrière-plan.'}}
+function objeoDisableAlerts(){try{localStorage.removeItem(objeoAlertPreferenceKey)}catch(e){}}
+function objeoNotifyIncomingMessage(message){
+ if(!objeoAlertsEnabled()||!objeoAlertSupported()||Notification.permission!=='granted')return;
+ if(message?.sender_id===objeoRealtimeUser||(!document.hidden&&document.hasFocus()))return;
+ try{const notification=new Notification('Nouveau message sur Objeo',{body:'Vous avez reçu un nouveau message. Ouvrez Objeo pour le consulter.',icon:'/favicon.svg',tag:'objeo-message-'+String(message?.id||'')});notification.onclick=()=>{window.focus();notification.close();openObjeoMessages()}}catch(e){console.warn('Notification de message non disponible',e)}
+}
+window.openObjeoAlertSettings=async function(){
+ const ctx=await requireObjeoUser();if(!ctx)return;
+ objeoWorkspace('Alertes de messages 🔔','<p>Recevez une alerte lorsqu’un message arrive pendant qu’Objeo reste ouvert en arrière-plan. Vous décidez si vous voulez les activer sur cet appareil.</p><p><strong>Important :</strong> pour recevoir une notification quand le site est complètement fermé, il faudra activer les notifications push web avec un service d’envoi sécurisé. Cette option ne le fait pas encore.</p><div id="objeoAlertsStatus" role="status"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0"><button type="button" class="primary" id="objeoEnableAlerts">Activer les alertes</button><button type="button" class="outline" id="objeoDisableAlerts">Désactiver</button></div>');
+ const status=document.getElementById('objeoAlertsStatus'),enable=document.getElementById('objeoEnableAlerts'),disable=document.getElementById('objeoDisableAlerts');const refresh=()=>{status.textContent=!objeoAlertSupported()?'Non disponible sur ce navigateur.':objeoAlertsEnabled()&&Notification.permission==='granted'?'✅ Alertes activées sur cet appareil.':'Alertes désactivées. Les notifications de nouveaux messages restent visibles dans Objeo.'};refresh();
+ enable.onclick=async()=>{enable.disabled=true;try{const result=await objeoEnableAlerts();status.textContent=result.message;if(result.ok)objeoRealtimeStart(ctx)}finally{enable.disabled=false}};
+ disable.onclick=()=>{objeoDisableAlerts();refresh()};
 };
 window.objeoRefreshUnread=updateBadges;
 window.objeoRealtimeReconnect=objeoRealtimeEnsure;
