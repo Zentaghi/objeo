@@ -35,14 +35,30 @@ main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border
 .no-results{background:#fff;padding:20px;border-radius:12px;color:#60758a;grid-column:1/-1}
 .inline-link{display:inline-block;color:#c85411;font-weight:850;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:650px){.result-toolbar{align-items:stretch}.filter-buttons{margin-right:-16px;padding-right:16px}.share-button{width:100%}.source-category{font-size:9px}.source{padding:17px}}
+
+/* Optional, on-device photo recognition (MobileNet) */
+.photo-assist{border:1px solid #dbebf8;background:linear-gradient(135deg,#f5faff,#fff);padding:20px;border-radius:16px;margin:0 0 22px}
+.photo-assist-heading{display:flex;gap:12px;align-items:flex-start}.photo-icon{width:43px;height:43px;border-radius:12px;background:#e4f0ff;display:grid;place-items:center;font-size:22px;flex:none}
+.photo-assist-heading strong{font-size:16px}.photo-assist-heading p{color:#61788e;font-size:13px;line-height:1.55;margin:5px 0 14px}
+.photo-beta{background:#ffe5d1;color:#b54e0e;padding:3px 7px;border-radius:99px;font-weight:850;font-size:10px;vertical-align:middle}
+.photo-picker{display:block;border:2px dashed #b7d3ed;border-radius:13px;text-align:center;padding:17px 12px;color:#205b90;background:#fff;cursor:pointer;font-size:13px;font-weight:800}
+.photo-picker:focus-within{outline:3px solid #ffae7a;outline-offset:3px}.photo-picker input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-preview-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:17px;margin-top:16px}.photo-preview-wrap img{width:120px;height:120px;object-fit:contain;border-radius:12px;background:white;border:1px solid #d8e5f1}
+.photo-control{display:flex;flex:1;gap:8px;flex-wrap:wrap}.photo-analyze{border:0;border-radius:11px;background:#1766b4;color:#fff;padding:12px 15px;font-weight:850;font-size:13px}.photo-analyze:disabled{opacity:.55;cursor:wait}
+.photo-remove{border:1px solid #dfebf3;background:white;color:#596f85;border-radius:11px;padding:12px;font-weight:750;font-size:13px}
+.photo-status{font-size:12px;color:#61788e;line-height:1.6;margin-top:12px}.photo-suggestions{background:white;border:1px solid #dfeaf4;border-radius:12px;padding:15px;margin-top:14px}
+.photo-suggestions>strong{display:block;color:#254968;font-size:13px;margin-bottom:10px}
+#photoChoices{display:flex;flex-wrap:wrap;gap:8px}#photoChoices button{padding:9px 12px;border:1px solid #c5def2;border-radius:99px;background:#ecf6ff;color:#205f98;font-size:12px;font-weight:800}
+#photoChoices button:hover{background:#d8edff}.photo-suggestions p{font-size:12px;color:#7a8591;line-height:1.5;margin:12px 0 0}
+@media(max-width:600px){.photo-assist{padding:15px}.photo-control{flex-basis:100%}.photo-analyze{flex:1}}
 </style>
 </head>
 <body>
 <header class="top"><div class="shell"><a class="brand" href="/" aria-label="Objeo accueil">Objeo<span>.</span></a><a class="back" href="/">← Retour à Objeo</a></div></header>
-<section class="hero"><div class="shell"><span class="tag">BÊTA · OB JEO SEARCH+</span><h1>Votre recherche <em>va plus loin.</em></h1><p>Un objet perdu ? Préparez en quelques secondes des recherches ciblées sur le web et découvrez où chercher : France Objets Trouvés, Troov, SNCF, RATP et les groupes Facebook accessibles.</p></div></section>
+<section class="hero"><div class="shell"><span class="tag">BÊTA · OB JEO SEARCH+</span><h1>Votre recherche <em>va plus loin.</em></h1><p>Un objet perdu ? Décrivez-le ou ajoutez une photo pour préparer des recherches ciblées sur le web et découvrez où chercher : France Objets Trouvés, Troov, SNCF, RATP et les groupes Facebook accessibles.</p></div></section>
 <main class="shell">
 <section class="panel" aria-labelledby="searchTitle"><h2 id="searchTitle">Décrivez l'objet perdu</h2><p class="sub">Objeo prépare vos recherches externes ; aucun compte n'est nécessaire.</p>
-<form id="searchForm"><div class="fields">
+<form id="searchForm"><div class="photo-assist"><div class="photo-assist-heading"><span class="photo-icon" aria-hidden="true">📸</span><div><strong>Reconnaissance photo <span class="photo-beta">BÊTA</span></strong><p>Ajoutez une photo de votre objet : l’IA propose des mots-clés pour votre recherche.</p></div></div><label class="photo-picker" for="objectPhoto">Choisir une photo (JPEG, PNG ou WebP · 5 Mo max)<input type="file" id="objectPhoto" accept="image/jpeg,image/png,image/webp" aria-describedby="photoStatus"></label><div id="photoPreviewWrap" class="photo-preview-wrap hidden"><img id="objectPreview" alt="Photo sélectionnée pour l'analyse"><div class="photo-control"><button type="button" class="photo-analyze" id="analyzePhoto">✨ Analyser cette photo</button><button type="button" class="photo-remove" id="removePhoto">Retirer</button></div></div><div id="photoStatus" role="status" aria-live="polite" class="photo-status">Analyse facultative · La photo reste dans votre navigateur ; le modèle d’IA est téléchargé à la demande.</div><div id="photoSuggestions" class="photo-suggestions hidden"><strong>Suggestions de l’IA (à vérifier)</strong><div id="photoChoices"></div><p>Choisissez la proposition correcte pour remplir le champ « Objet ». L’IA peut se tromper, notamment pour les clés ou les portefeuilles.</p></div></div><div class="fields">
 <div class="field-full"><label for="object">Quel objet cherchez-vous ? *</label><input id="object" required minlength="2" maxlength="100" placeholder="Ex. portefeuille noir, iPhone 15, clés de voiture" autocomplete="off"></div>
 <div><label for="city">Ville ou secteur</label><input id="city" maxlength="80" placeholder="Ex. Rouen, Paris, 76000" autocomplete="address-level2"></div>
 <div><label for="type">Catégorie</label><select id="type"><option value="">Toutes catégories</option><option value="téléphone">Téléphone et électronique</option><option value="portefeuille">Portefeuille et papiers</option><option value="clés">Clés et badges</option><option value="sac">Sac et bagages</option><option value="bijoux">Bijoux et montres</option><option value="vêtement">Vêtements</option><option value="autre">Autre</option></select></div>
@@ -68,6 +84,107 @@ for(const key of fields){
   else field.value=value.slice(0,max);
  }
 }
+
+const MAX_PHOTO_BYTES=5*1024*1024;
+let photoObjectUrl=null,photoModelPromise=null,photoEpoch=0;
+const photoTranslations=[
+ [/wallet|purse|billfold/i,'portefeuille'],
+ [/backpack|rucksack|knapsack|school bag/i,'sac à dos'],
+ [/handbag|pocketbook|shoulder bag/i,'sac à main'],
+ [/suitcase|luggage|trunk/i,'valise'],
+ [/cellular telephone|cell phone|smartphone|mobile phone|iphone|dial telephone/i,'téléphone'],
+ [/laptop|notebook computer/i,'ordinateur portable'],
+ [/desktop computer|monitor/i,'ordinateur'],
+ [/keyboard/i,'clavier'],
+ [/mouse|computer mouse/i,'souris informatique'],
+ [/digital watch|wristwatch|watch/i,'montre'],
+ [/sunglass|sunglasses/i,'lunettes de soleil'],
+ [/spectacles|eyeglasses/i,'lunettes'],
+ [/keychain|key ring|padlock|key/i,'clés'],
+ [/umbrella/i,'parapluie'],
+ [/headphone|earphone|earbud|microphone/i,'écouteurs'],
+ [/camera|reflex camera|digital camera/i,'appareil photo'],
+ [/bicycle|mountain bike/i,'vélo'],
+ [/shoe|sneaker|running shoe|loafer|boot/i,'chaussures'],
+ [/coat|jacket|cardigan|sweatshirt|jersey/i,'vêtement'],
+ [/necklace|chain|pendant/i,'collier'],
+ [/ring/i,'bague'],
+ [/book|notebook/i,'livre'],
+ [/water bottle|water jug/i,'gourde']
+];
+function photoSetStatus(text){$('photoStatus').textContent=text}
+function photoClear(){
+ photoEpoch++;$('objectPhoto').value='';$('photoPreviewWrap').classList.add('hidden');
+ $('photoSuggestions').classList.add('hidden');$('photoChoices').replaceChildren();
+ $('objectPreview').removeAttribute('src');
+ if(photoObjectUrl)URL.revokeObjectURL(photoObjectUrl);photoObjectUrl=null;
+ $('analyzePhoto').disabled=false;photoSetStatus('Analyse facultative · Choisissez une photo pour commencer.');
+}
+$('objectPhoto').addEventListener('change',()=>{
+ photoEpoch++;const file=$('objectPhoto').files[0];$('photoSuggestions').classList.add('hidden');$('photoChoices').replaceChildren();
+ if(photoObjectUrl)URL.revokeObjectURL(photoObjectUrl);photoObjectUrl=null;
+ if(!file){photoClear();return}
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>MAX_PHOTO_BYTES){
+  photoClear();photoSetStatus('Photo refusée : choisissez un JPEG, PNG ou WebP de moins de 5 Mo.');return;
+ }
+ photoObjectUrl=URL.createObjectURL(file);$('objectPreview').src=photoObjectUrl;
+ $('photoPreviewWrap').classList.remove('hidden');photoSetStatus('Photo prête. Touchez « Analyser cette photo » pour lancer la reconnaissance.');
+});
+$('removePhoto').addEventListener('click',photoClear);
+function injectPhotoScript(url,ready){
+ return new Promise((resolve,reject)=>{
+  const element=document.createElement('script');element.src=url;element.async=true;let finished=false;
+  const watchdog=setTimeout(()=>{if(finished)return;finished=true;element.remove();reject(Error('Téléchargement trop long'))},30000);
+  element.onload=()=>{if(finished)return;finished=true;clearTimeout(watchdog);if(ready())resolve();else reject(Error('Bibliothèque indisponible'))};
+  element.onerror=()=>{if(finished)return;finished=true;clearTimeout(watchdog);reject(Error('Connexion impossible au modèle IA'))};
+  document.head.appendChild(element);
+ });
+}
+async function loadPhotoModel(){
+ if(photoModelPromise)return photoModelPromise;
+ photoModelPromise=(async()=>{
+  if(!window.tf)await injectPhotoScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',()=>!!window.tf);
+  if(!window.mobilenet)await injectPhotoScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js',()=>!!window.mobilenet);
+  return window.mobilenet.load({version:2,alpha:1});
+ })().catch(error=>{photoModelPromise=null;throw error});
+ return photoModelPromise;
+}
+function translatePhotoClass(english){
+ for(const [pattern,name] of photoTranslations)if(pattern.test(english))return name;
+ // ImageNet sometimes reports objects that are not useful for lost-and-found. Keep uncertainty visible.
+ return '';
+}
+$('analyzePhoto').addEventListener('click',async()=>{
+ const image=$('objectPreview');if(!photoObjectUrl||!$('objectPhoto').files[0])return;
+ const thisEpoch=photoEpoch,btn=$('analyzePhoto');btn.disabled=true;$('photoSuggestions').classList.add('hidden');
+ photoSetStatus('Chargement de l’IA dans votre navigateur (première utilisation plus longue)…');
+ try{
+  const model=await loadPhotoModel();
+  if(thisEpoch!==photoEpoch)return;
+  if(!image.complete||!image.naturalWidth)await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Image illisible'))});
+  photoSetStatus('Analyse de la photo en cours…');
+  const predictions=await model.classify(image,5);
+  if(thisEpoch!==photoEpoch)return;
+  const options=[],seen=new Set();
+  for(const p of predictions){
+   const value=translatePhotoClass(p.className);
+   if(!value||seen.has(value)||p.probability<0.08)continue;
+   seen.add(value);options.push({value,confidence:Math.round(p.probability*100)});
+  }
+  const container=$('photoChoices');container.replaceChildren();
+  for(const suggestion of options){
+   const button=document.createElement('button');button.type='button';
+   button.textContent=suggestion.value+' · '+suggestion.confidence+' % (modèle)';
+   button.onclick=()=>{$('object').value=suggestion.value;$('object').focus();photoSetStatus('Proposition appliquée. Ajoutez la marque, la couleur et la ville avant de rechercher.')};
+   container.appendChild(button);
+  }
+  if(!options.length){photoSetStatus('L’IA n’a pas reconnu un objet avec assez de fiabilité. Décrivez-le manuellement : vos recherches restent disponibles.');return}
+  $('photoSuggestions').classList.remove('hidden');
+  photoSetStatus('Analyse terminée. Sélectionnez une suggestion seulement si elle correspond à votre objet.');
+ }catch(error){if(thisEpoch===photoEpoch)photoSetStatus('Reconnaissance photo indisponible : '+error.message+'. Vous pouvez toujours effectuer une recherche textuelle.')}
+ finally{if(thisEpoch===photoEpoch)btn.disabled=false}
+});
+
 const stop=new Set(['le','la','les','de','des','du','un','une','et','avec','dans','sur','mon','ma','mes','perdu','perdue','objet','objets','trouve','trouvé','trouvés']);
 const frenchAliases={portable:'téléphone',smartphone:'téléphone',iphone:'téléphone',cellulaire:'téléphone',clef:'clés',clefs:'clés',clé:'clés',carte:'carte',sacoche:'sac',bagage:'sac',valise:'sac',wallet:'portefeuille',wallets:'portefeuille'};
 function clean(value){return String(value||'').trim().replace(/\s+/g,' ').slice(0,120)}
