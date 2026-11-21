@@ -119,6 +119,7 @@ window.openObjeoPhonePreferences=async function(){
 };
 window.objeoRefreshUnread=updateBadges;
 window.objeoRealtimeReconnect=objeoRealtimeEnsure;
+window.objeoRealtimeDisconnect=objeoRealtimeStop;
 setTimeout(()=>{updateBadges();objeoRealtimeEnsure()},5500);
 setInterval(()=>{if(!document.hidden){updateBadges();if(objeoRealtimeState!=='SUBSCRIBED')objeoRealtimeRefreshThread()}},25000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateBadges();objeoRealtimeEnsure();objeoRealtimeRefreshThread()}});
