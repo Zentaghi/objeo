@@ -46,11 +46,27 @@ let objeoRealtimeActiveThread=null,objeoRealtimeThreadIdentity=null,objeoRealtim
 function objeoRealtimeStatus(status){objeoRealtimeState=status;const label=document.getElementById('objeoRealtimeStatus');if(label){label.textContent=status==='SUBSCRIBED'?'● Messages en direct':status==='CHANNEL_ERROR'||status==='TIMED_OUT'?'Connexion instable · actualisation disponible':'Connexion à la messagerie…';label.style.color=status==='SUBSCRIBED'?'#18824b':'#667085'}}
 function objeoRealtimeForgetThread(){objeoRealtimeActiveThread=null;objeoRealtimeThreadIdentity=null;objeoRealtimeThreadCtx=null;objeoRealtimeThreadKeys.clear()}
 function objeoRealtimeStop(){if(objeoRealtimeInboxRefresh){clearTimeout(objeoRealtimeInboxRefresh);objeoRealtimeInboxRefresh=null}if(objeoRealtimeClient&&objeoRealtimeChannel){objeoRealtimeClient.removeChannel(objeoRealtimeChannel)}objeoRealtimeChannel=null;objeoRealtimeClient=null;objeoRealtimeUser=null;objeoRealtimeForgetThread();objeoRealtimeStatus('OFFLINE')}
+async function objeoRealtimeRefreshThread(){
+ const ctx=objeoRealtimeThreadCtx,cid=objeoRealtimeActiveThread,identity=objeoRealtimeThreadIdentity;
+ const root=document.getElementById('objeoChatMessages');
+ if(!ctx||!cid||!identity||!root)return;
+ const response=await ctx.sb.from('messages').select('id,body,created_at,sender_id,conversation_id').eq('conversation_id',cid).order('created_at',{ascending:false}).limit(300);
+ if(response.error){console.warn('Synchronisation de conversation',response.error.message);return}
+ if(root!==document.getElementById('objeoChatMessages')||cid!==objeoRealtimeActiveThread)return;
+ let added=0;
+ for(const msg of [...(response.data||[])].reverse()){
+   const key=String(msg.id);if(objeoRealtimeThreadKeys.has(key))continue;
+   objeoRealtimeThreadKeys.add(key);
+   const node=messageNode(msg,ctx,identity);node.dataset.messageId=key;
+   root.appendChild(node);added++;
+ }
+ if(added&&!document.hidden&&document.hasFocus())await markRead(ctx,cid);
+}
 function objeoRealtimeMessage(event){
  const m=event?.new;if(!m?.id||!m.conversation_id)return;
  const id=String(m.id),cid=String(m.conversation_id);
  // Ignore all events that aren't visible for this user, as enforced by Supabase RLS.
- if(objeoRealtimeActiveThread===cid&&document.getElementById('objeoChatMessages')){
+ if(objeoRealtimeActiveThread===cid&&objeoRealtimeThreadCtx&&objeoRealtimeThreadIdentity&&document.getElementById('objeoChatMessages')){
    const thread=document.getElementById('objeoChatMessages');
    if(!objeoRealtimeThreadKeys.has(id)){
      objeoRealtimeThreadKeys.add(id);
@@ -73,7 +89,7 @@ async function objeoRealtimeStart(ctx){
  objeoRealtimeClient=ctx.sb;objeoRealtimeUser=ctx.user.id;
  const channel=ctx.sb.channel('objeo-messages-'+ctx.user.id)
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},objeoRealtimeMessage)
- .subscribe(status=>{if(objeoRealtimeChannel!==channel)return;objeoRealtimeStatus(status);if(status==='SUBSCRIBED')updateBadges(ctx)});
+ .subscribe(status=>{if(objeoRealtimeChannel!==channel)return;objeoRealtimeStatus(status);if(status==='SUBSCRIBED'){updateBadges(ctx);objeoRealtimeRefreshThread()}});
  objeoRealtimeChannel=channel;
 }
 async function objeoRealtimeEnsure(){try{const sb=auth2GetClient();const result=await sb.auth.getUser();if(!result.data?.user){if(objeoRealtimeChannel)objeoRealtimeStop();return}await objeoRealtimeStart({sb,user:result.data.user})}catch(e){console.warn('Realtime Objeo indisponible, lecture classique conservée',e)}}
@@ -104,6 +120,6 @@ window.openObjeoPhonePreferences=async function(){
 window.objeoRefreshUnread=updateBadges;
 window.objeoRealtimeReconnect=objeoRealtimeEnsure;
 setTimeout(()=>{updateBadges();objeoRealtimeEnsure()},5500);
-setInterval(()=>{if(!document.hidden)updateBadges()},25000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateBadges();objeoRealtimeEnsure()}});
+setInterval(()=>{if(!document.hidden){updateBadges();if(objeoRealtimeState!=='SUBSCRIBED')objeoRealtimeRefreshThread()}},25000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateBadges();objeoRealtimeEnsure();objeoRealtimeRefreshThread()}});
 })();
