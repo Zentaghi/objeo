@@ -39,7 +39,7 @@ main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border
 </head>
 <body>
 <header class="top"><div class="shell"><a class="brand" href="/" aria-label="Objeo accueil">Objeo<span>.</span></a><a class="back" href="/">← Retour à Objeo</a></div></header>
-<section class="hero"><div class="shell"><span class="tag">BÊTA · OB JEO SEARCH+</span><h1>Votre recherche <em>va plus loin.</em></h1><p>Un objet perdu ? Préparez en quelques secondes des recherches ciblées sur le web et découvrez où chercher : France Objets Trouvés, Troov, SNCF, RATP et plus encore.</p></div></section>
+<section class="hero"><div class="shell"><span class="tag">BÊTA · OB JEO SEARCH+</span><h1>Votre recherche <em>va plus loin.</em></h1><p>Un objet perdu ? Préparez en quelques secondes des recherches ciblées sur le web et découvrez où chercher : France Objets Trouvés, Troov, SNCF, RATP et les groupes Facebook accessibles.</p></div></section>
 <main class="shell">
 <section class="panel" aria-labelledby="searchTitle"><h2 id="searchTitle">Décrivez l'objet perdu</h2><p class="sub">Objeo prépare vos recherches externes ; aucun compte n'est nécessaire.</p>
 <form id="searchForm"><div class="fields">
@@ -51,8 +51,8 @@ main{padding:30px 0 70px}.panel{background:white;border:1px solid #e0eaf3;border
 </div><div class="form-actions"><button class="main-btn" type="submit">🔎 Préparer mes recherches</button><span class="muted">Gratuit · Sans collecte d'annonces tierces</span></div></form>
 <div class="safety">🔒 <strong>Confidentialité :</strong> n'indiquez pas de numéro de série, d'adresse complète, de téléphone, de numéro de carte ou d'autre donnée sensible. Les mots-clés seront transmis au moteur externe uniquement si vous cliquez sur son lien.</div>
 </section>
-<section id="results" class="results hidden" aria-live="polite"><div class="results-head"><div><h2>Vos pistes de recherche</h2><div id="summary" class="query-text"></div></div><button id="copySearch" class="share-button" type="button">↗ Partager cette recherche</button></div><div id="priorityTip" class="priority-tip" role="status"></div><div class="result-toolbar"><div class="filter-buttons" role="group" aria-label="Filtrer les recherches"><button type="button" class="active" data-filter="all" aria-pressed="true">Toutes</button><button type="button" data-filter="recommended" aria-pressed="false">⭐ Conseillées</button><button type="button" data-filter="sites" aria-pressed="false">Sites spécialisés</button><button type="button" data-filter="transport" aria-pressed="false">Transports</button><button type="button" data-filter="web" aria-pressed="false">Internet</button></div><span id="resultCount" class="result-count"></span></div><div id="sourceGrid" class="source-grid"></div><div class="tip"><strong>Important :</strong> ces liens lancent une recherche sur d'autres sites ou ouvrent leur service officiel. Objeo n'a pas accès à leurs bases privées et ne peut pas garantir qu'un objet a été retrouvé. Une déclaration sur la plateforme concernée peut être nécessaire.</div></section>
-<div class="note"><strong>Comment ça marche ?</strong> Objeo adapte les mots-clés à votre description et propose des recherches Google/Bing sur des domaines spécifiques. Les sites externes s'ouvrent seulement à votre demande. Cette bêta n'aspire ni photos ni annonces et ne réalise pas de comparaison IA avec les bases externes. <a href="/mes-objets.html" class="inline-link">Enregistrer mes objets sur Objeo →</a></div>
+<section id="results" class="results hidden" aria-live="polite"><div class="results-head"><div><h2>Vos pistes de recherche</h2><div id="summary" class="query-text"></div></div><button id="copySearch" class="share-button" type="button">↗ Partager cette recherche</button></div><div id="priorityTip" class="priority-tip" role="status"></div><div class="result-toolbar"><div class="filter-buttons" role="group" aria-label="Filtrer les recherches"><button type="button" class="active" data-filter="all" aria-pressed="true">Toutes</button><button type="button" data-filter="recommended" aria-pressed="false">⭐ Conseillées</button><button type="button" data-filter="sites" aria-pressed="false">Sites spécialisés</button><button type="button" data-filter="transport" aria-pressed="false">Transports</button><button type="button" data-filter="facebook" aria-pressed="false">Facebook</button><button type="button" data-filter="web" aria-pressed="false">Internet</button></div><span id="resultCount" class="result-count"></span></div><div id="sourceGrid" class="source-grid"></div><div class="tip"><strong>Important :</strong> ces liens lancent une recherche sur d'autres sites ou ouvrent leur service officiel, y compris Facebook. Les groupes privés ne sont accessibles que selon vos droits Facebook. Objeo n'a pas accès à leurs bases privées et ne peut pas garantir qu'un objet a été retrouvé. Une déclaration sur la plateforme concernée peut être nécessaire.</div></section>
+<div class="note"><strong>Comment ça marche ?</strong> Objeo adapte les mots-clés à votre description et propose des recherches Google/Bing sur des domaines spécifiques. Les sites externes s'ouvrent seulement à votre demande. Cette bêta n'aspire ni photos ni annonces et ne réalise pas de comparaison IA avec les bases externes, notamment Facebook. Les groupes privés ne sont pas consultés automatiquement. <a href="/mes-objets.html" class="inline-link">Enregistrer mes objets sur Objeo →</a></div>
 </main>
 <script>
 (function(){
@@ -89,6 +89,7 @@ function link(title,icon,desc,url,category,opts={}){
  return {title,icon,desc,url,category,recommended:!!opts.recommended,direct:opts.direct||null,
   directLabel:opts.directLabel||'Accéder au service',subtitle:opts.subtitle||''};
 }
+function facebookSearch(q,kind){return 'https://www.facebook.com/search/'+kind+'/?q='+encodeURIComponent(q)}
 const sources=[
  {title:'France Objets Trouvés',icon:'🇫🇷',domain:'franceobjetstrouves.fr',direct:'https://www.franceobjetstrouves.fr/',category:'sites',desc:'Chercher les pages publiques indexées et accéder au service pour déclarer votre objet.'},
  {title:'Troov',icon:'🔎',domain:'troov.com',direct:'https://troov.com/',category:'sites',desc:'Consulter les informations disponibles et faire une déclaration de perte sur Troov.'},
@@ -101,7 +102,7 @@ function makeCard(item){
  const head=document.createElement('div');head.className='source-top';
  const icon=document.createElement('span');icon.className='source-icon';icon.textContent=item.icon;
  const h=document.createElement('h3');h.textContent=item.title;
- const type=document.createElement('span');type.className='source-category';type.textContent={sites:'Site spécialisé',transport:'Transport',web:'Internet'}[item.category]||'Recherche';
+ const type=document.createElement('span');type.className='source-category';type.textContent={sites:'Site spécialisé',transport:'Transport',web:'Internet',facebook:'Facebook'}[item.category]||'Recherche';
  head.append(icon,h,type);
  const p=document.createElement('p');p.textContent=item.desc;
  article.append(head);
@@ -130,7 +131,7 @@ function prioritize(city,where){
  if(where==='sncf')return '🚆 Votre objet a été perdu dans un train ou en gare : commencez par une déclaration SNCF.';
  if(where==='ratp')return '🚇 Perte dans les transports franciliens : consultez en priorité les démarches RATP.';
  if(where==='city')return '🏛️ Un objet perdu dans l’espace public peut être confié au service des objets trouvés de la commune.';
- if(where==='shop')return '🏪 Contactez directement l’établissement où l’objet a été perdu, puis vérifiez les plateformes partenaires.';
+ if(where==='shop')return '🏪 Contactez directement l’établissement où l’objet a été perdu, puis vérifiez les plateformes partenaires et les groupes Facebook locaux.';
  return city?'📍 Recherche adaptée à '+city+'. Pensez aussi au service municipal des objets trouvés.':'💡 Précisez une ville ou un lieu de perte pour obtenir des pistes plus ciblées.';
 }
 function search(event){
@@ -148,6 +149,12 @@ function search(event){
   const recommended=(where==='sncf'&&source.title.startsWith('SNCF'))||(where==='ratp'&&source.title.startsWith('RATP'))||((where==='shop'||!where)&&source.category==='sites');
   list.push(link(source.title,source.icon,source.desc,google(targeted),source.category,{recommended,direct:source.direct,directLabel:'Site officiel',subtitle:'Recherche Google limitée à '+source.domain}));
  }
+ // Objeo ne consulte pas les groupes Facebook : les liens transmettent le contrôle à l'utilisateur.
+ const fbQuery=[main,cityTerms,'objet trouvé'].filter(Boolean).join(' ');
+ const fbGroupQuery=[cityTerms,'objets perdus trouvés'].filter(Boolean).join(' ');
+ list.push(link('Facebook — Publications','👥','Ouvrir une recherche de publications dans Facebook. Les résultats dépendent de votre compte et des autorisations des groupes.',facebookSearch(fbQuery,'posts'),'facebook',{subtitle:'Connexion Facebook parfois nécessaire ; pas d’accès automatique par Objeo'}));
+ list.push(link('Facebook — Groupes locaux','📍','Rechercher des groupes d’objets perdus et trouvés dans votre secteur, puis rechercher l’objet dans chacun d’eux.',facebookSearch(fbGroupQuery,'groups'),'facebook',{recommended:!!cityTerms,subtitle:'Les groupes privés restent soumis à leurs règles d’accès'}));
+ list.push(link('Google — Groupes Facebook publics','🌐','Rechercher les publications de groupes publics éventuellement indexées par Google.',google([main,cityTerms,'site:facebook.com/groups','objet trouvé'].filter(Boolean).join(' ')),'facebook',{subtitle:'Ne couvre pas les groupes privés ou non indexés'}));
  if(where==='city'||cityTerms){
   list.push(link('Objets trouvés de la mairie','🏛️','Trouver le service municipal ou les démarches d’objets trouvés pour votre commune.',google(['service objets trouvés mairie',cityTerms].filter(Boolean).join(' ')),'sites',{recommended:where==='city'}));
  }
