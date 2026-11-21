@@ -47,21 +47,33 @@ CREATE POLICY objeo_contact_preferences_self ON public.objeo_contact_preferences
 FOR ALL TO authenticated USING (user_id=(SELECT auth.uid()))
 WITH CHECK (user_id=(SELECT auth.uid()));
 
+-- A named dollar-quoted PL/pgSQL body keeps this function independent of SQL-editor quote formatting.
 CREATE OR REPLACE FUNCTION public.objeo_accepted_claim_phone(p_claim_id uuid)
 RETURNS text
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
-AS $$
- SELECT cp.phone FROM public.objeo_claims c
- JOIN public.ads a ON a.id=c.ad_id
- JOIN public.objeo_contact_preferences cp ON cp.user_id=a.user_id
- WHERE c.id=p_claim_id
- AND c.claimant_id=(SELECT auth.uid())
- AND c.status='accepted'
- AND a.user_id<>c.claimant_id
- AND cp.share_phone_after_acceptance IS TRUE
- AND cp.phone IS NOT NULL
- LIMIT 1;
-$$;
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $objeo_phone$
+DECLARE
+  contact_phone text;
+BEGIN
+  SELECT prefs.phone
+    INTO contact_phone
+  FROM public.objeo_claims AS claim
+  INNER JOIN public.ads AS ad ON ad.id = claim.ad_id
+  INNER JOIN public.objeo_contact_preferences AS prefs ON prefs.user_id = ad.user_id
+  WHERE claim.id = p_claim_id
+    AND claim.claimant_id = auth.uid()
+    AND claim.status::text = 'accepted'
+    AND ad.user_id <> claim.claimant_id
+    AND prefs.share_phone_after_acceptance = true
+    AND prefs.phone IS NOT NULL
+  LIMIT 1;
+
+  RETURN contact_phone;
+END;
+$objeo_phone$;
 REVOKE ALL ON FUNCTION public.objeo_accepted_claim_phone(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.objeo_accepted_claim_phone(uuid) TO authenticated;
 COMMENT ON FUNCTION public.objeo_accepted_claim_phone(uuid)
