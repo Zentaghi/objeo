@@ -32,5 +32,35 @@
   "categories": [
     "utilities",
     "lifestyle"
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshots/01-accueil.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Objeo : retrouvez ce qui compte"
+    },
+    {
+      "src": "/assets/screenshots/02-recherche.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Recherchez un objet perdu ou trouvé"
+    },
+    {
+      "src": "/assets/screenshots/03-publication.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Publiez une annonce gratuitement"
+    },
+    {
+      "src": "/assets/screenshots/04-partenaires.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Découvrez les établissements partenaires"
+    }
   ]
 }
