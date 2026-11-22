@@ -62,5 +62,6 @@
       "form_factor": "narrow",
       "label": "Découvrez les établissements partenaires"
     }
-  ]
+  ],
+  "orientation": "portrait-primary"
 }
