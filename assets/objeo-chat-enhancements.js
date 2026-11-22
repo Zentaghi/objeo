@@ -206,6 +206,14 @@ window.openObjeoProFromListing=async function(itemId){
 window.addEventListener('load',()=>{
  const params=new URLSearchParams(location.search),item=params.get('pro_objet');
  if(item)window.openObjeoProFromListing(item);
+ else if(params.get('pro_conversation')){
+  (async()=>{const ctx=await requireObjeoUser();if(!ctx)return;
+   const {data:c,error}=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').eq('id',params.get('pro_conversation')).maybeSingle();
+   if(error||!c){window.openObjeoMessages();return}
+   await window.openUnifiedObjeoProThread(ctx,c);
+   history.replaceState(null,'','/');
+  })().catch(err=>{console.warn('Ouverture conversation Pro',err);window.openObjeoMessages()});
+ }
  else if(params.get('pro_messages')==='1')window.openObjeoMessages();
 });
 window.openObjeoMessages=async function(){
@@ -224,6 +232,7 @@ window.openObjeoMessages=async function(){
 };
 async function objeoChatOwnerReturn(ctx,meta){const root=document.getElementById('objeoChatOwnerReturn');if(!root||!meta?.ad_id)return;const r=await ctx.sb.from('ads').select('id,user_id,kind,status').eq('id',meta.ad_id).maybeSingle();if(!root.isConnected)return;root.replaceChildren();if(r.error||!r.data){root.remove();return}const ad=r.data;if(ad.user_id!==ctx.user.id){root.remove();return}root.style.cssText='padding:14px;margin:12px 0;border:1px solid #d0eadd;background:#f4fbf6;border-radius:12px';if(ad.status!=='open'){root.append(make('strong','✅ Annonce clôturée · Restitué'));return}const intro=make('p',ad.kind==='found'?'L’objet a-t-il été remis à son propriétaire ?':'Avez-vous récupéré votre objet ?');root.append(intro);const button=make('button',ad.kind==='found'?'✅ J’ai remis l’objet':'✅ J’ai récupéré mon objet','background:#168351;color:#fff;border:0;border-radius:10px;padding:13px;font:inherit;font-weight:750');button.type='button';button.onclick=async()=>{button.disabled=true;try{const ok=await closeObjeoAd(ad.id,{ctx});if(ok){meta.ads.status='returned';const claimBox=document.getElementById('objeoChatClaimStatus');if(claimBox){claimBox.hidden=true;claimBox.replaceChildren()}await objeoChatOwnerReturn(ctx,meta)}else if(button.isConnected)button.disabled=false}catch(e){console.warn('Clôture conversation',e);if(button.isConnected)button.disabled=false}};root.append(button)}
 window.openObjeoConversation=async function(id,items,ctx,metadata){
+ stopUnifiedProThread();
  const meta=metadata||items[0]?.conversations,other=person(meta,ctx.user.id);objeoRealtimeStart(ctx);objeoRealtimeForgetThread();objeoRealtimeActiveThread=String(id);objeoRealtimeThreadCtx=ctx;objeoWorkspace('Conversation 💬','<div id="objeoChatHeading" style="padding:14px;border-radius:12px;background:#fff8f2;border:1px solid #ffddc8"></div><div id="objeoChatClaimStatus" style="padding:14px;margin:12px 0;border:1px solid #eee;border-radius:12px"></div><div id="objeoChatOwnerReturn"></div><p id="objeoRealtimeStatus" role="status" style="font-size:12px;color:#667085;margin:10px 0">Connexion à la messagerie…</p><div id="objeoChatMessages" aria-live="polite"></div><form id="objeoChatForm"><textarea name="body" required maxlength="2000" rows="3" placeholder="Votre message"></textarea><button type="submit" style="background:#ff6e14;color:#fff;border:0;border-radius:12px;padding:14px;width:100%">Envoyer</button><p id="objeoChatFeedback" role="status"></p></form>');
  const identities=await objeoLoadChatIdentities(ctx.sb,[other],ctx.user),identity=objeoChatIdentity(other,identities),header=document.getElementById('objeoChatHeading');if(!header)return;header.append(objeoChatIdentityNode(identity),make('small','À propos de : '+(meta?.ads?.title||'Annonce'),'display:block;margin-top:7px;color:#667085'));
  const thread=document.getElementById('objeoChatMessages');objeoRealtimeThreadIdentity=identity;for(const m of [...items].reverse()){objeoRealtimeThreadKeys.add(String(m.id));const node=messageNode(m,ctx,identity);node.dataset.messageId=String(m.id);thread.append(node)}objeoRealtimeStatus(objeoRealtimeState);await claimStatus(ctx,meta,other);await objeoChatOwnerReturn(ctx,meta);if(objeoRealtimeActiveThread===String(id))await markRead(ctx,id);
