@@ -93,8 +93,123 @@ async function objeoRealtimeStart(ctx){
  objeoRealtimeChannel=channel;
 }
 async function objeoRealtimeEnsure(){try{const sb=auth2GetClient();const result=await sb.auth.getUser();if(!result.data?.user){if(objeoRealtimeChannel)objeoRealtimeStop();return}await objeoRealtimeStart({sb,user:result.data.user})}catch(e){console.warn('Realtime Objeo indisponible, lecture classique conservée',e)}}
+
+/* Unified professional chat: same workspace, thread and message bubble UI as classic Objeo.
+   Existing pro chat tables are retained so past conversations remain accessible. */
+let unifiedProChannel=null,unifiedProTimer=null,unifiedProActiveId=null;
+function stopUnifiedProThread(){
+ if(unifiedProTimer){clearInterval(unifiedProTimer);unifiedProTimer=null}
+ if(unifiedProChannel){try{auth2GetClient().removeChannel(unifiedProChannel)}catch(e){}unifiedProChannel=null}
+ unifiedProActiveId=null;
+}
+async function objeoProMetadata(sb,conversations){
+ const ids=[...new Set(conversations.map(c=>c.item_id))];
+ if(!ids.length)return {items:new Map(),est:new Map()};
+ const {data:items,error}=await sb.from('objeo_establishment_items').select('id,title,kind,status,establishment_id').in('id',ids);
+ if(error)throw error;
+ const map=new Map((items||[]).map(item=>[item.id,item]));
+ const estIds=[...new Set((items||[]).map(item=>item.establishment_id))];
+ if(!estIds.length)return {items:map,est:new Map()};
+ const {data:ests,error:estError}=await sb.from('objeo_establishments').select('id,name,owner_id').in('id',estIds);
+ if(estError)throw estError;
+ return {items:map,est:new Map((ests||[]).map(est=>[est.id,est]))};
+}
+async function objeoAppendProInbox(ctx,list,status,regularCount){
+ const {data:conversations,error}=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error){console.warn('Conversations Pro indisponibles',error.message);return}
+ const all=conversations||[],meta=await objeoProMetadata(ctx.sb,all);
+ const ids=all.map(c=>c.id);
+ let last=new Map();
+ if(ids.length){
+  const {data:messages,error:messageError}=await ctx.sb.from('objeo_pro_messages').select('conversation_id,body,sender_id,created_at').in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);
+  if(!messageError)for(const m of messages||[]){if(!last.has(m.conversation_id))last.set(m.conversation_id,m)}
+ }
+ const visitors=[...new Set(all.filter(c=>meta.est.get(meta.items.get(c.item_id)?.establishment_id)?.owner_id===ctx.user.id).map(c=>c.seeker_id))];
+ const names=visitors.length?await objeoLoadChatIdentities(ctx.sb,visitors,ctx.user):new Map();
+ for(const c of all){
+  const item=meta.items.get(c.item_id),est=meta.est.get(item?.establishment_id),isOwner=est?.owner_id===ctx.user.id;
+  const display=isOwner?objeoChatIdentity(c.seeker_id,names):{name:est?.name||'Établissement Objeo',isPro:true};
+  const m=last.get(c.id);
+  const card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#fff8f2;border:1px solid #ffddc8;border-radius:12px;cursor:pointer;color:#27313e');
+  card.type='button';
+  card.append(objeoChatIdentityNode(display),make('div','📦 '+(item?.title||'Annonce'),'font-size:13px;color:#667085;margin-top:7px'),make('div',m?(m.sender_id===ctx.user.id?'Vous : ':'')+m.body.slice(0,100):'Nouvelle conversation','margin-top:7px;color:#27313e;overflow-wrap:anywhere'),make('small',formatDate(m?.created_at||c.created_at),'display:block;color:#667085;margin-top:5px'));
+  card.onclick=()=>window.openUnifiedObjeoProThread(ctx,c,meta);
+  list.append(card);
+ }
+ if(status)status.textContent=regularCount+all.length?(regularCount+all.length)+' conversation(s)':'Aucune conversation pour le moment.';
+}
+window.openUnifiedObjeoProThread=async function(ctx,c,metadata){
+ stopUnifiedProThread();objeoRealtimeForgetThread();
+ const meta=metadata||await objeoProMetadata(ctx.sb,[c]),item=meta.items.get(c.item_id),est=meta.est.get(item?.establishment_id);
+ if(!item||!est)throw Error('Annonce indisponible.');
+ const owner=est.owner_id===ctx.user.id,other=owner?c.seeker_id:est.owner_id;
+ const names=owner?await objeoLoadChatIdentities(ctx.sb,[other],ctx.user):new Map();
+ const identity=owner?objeoChatIdentity(other,names):{name:est.name,isPro:true};
+ unifiedProActiveId=c.id;
+ objeoWorkspace('Conversation 💬','<div id="objeoChatHeading" style="padding:14px;border-radius:12px;background:#fff8f2;border:1px solid #ffddc8"></div><div id="objeoChatOwnerReturn"></div><p id="objeoRealtimeStatus" role="status" style="font-size:12px;color:#667085;margin:10px 0">Messages Objeo</p><div id="objeoChatMessages" aria-live="polite"></div><form id="objeoChatForm"><textarea name="body" required maxlength="2000" rows="3" placeholder="Votre message"></textarea><button type="submit" style="background:#ff6e14;color:#fff;border:0;border-radius:12px;padding:14px;width:100%">Envoyer</button><p id="objeoChatFeedback" role="status"></p></form>');
+ const heading=document.getElementById('objeoChatHeading');
+ if(!heading)return;
+ heading.append(objeoChatIdentityNode(identity),make('small','À propos de : '+item.title,'display:block;margin-top:7px;color:#667085'));
+ const thread=document.getElementById('objeoChatMessages'),known=new Set();
+ const load=async()=>{
+  if(unifiedProActiveId!==c.id||!thread?.isConnected){stopUnifiedProThread();return}
+  const {data,error}=await ctx.sb.from('objeo_pro_messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',c.id).order('created_at',{ascending:true}).limit(400);
+  if(error){const t=document.getElementById('objeoRealtimeStatus');if(t)t.textContent='Actualisation indisponible';return}
+  for(const m of data||[]){const key=String(m.id);if(known.has(key))continue;known.add(key);const el=messageNode(m,ctx,identity);el.dataset.messageId=key;thread.append(el)}
+  thread.scrollTop=thread.scrollHeight;
+ };
+ const returnBox=document.getElementById('objeoChatOwnerReturn');
+ if(owner&&item.status==='open'){
+  const btn=make('button',item.kind==='lost'?'✅ J’ai récupéré l’objet':'✅ J’ai remis l’objet','background:#168351;color:#fff;border:0;border-radius:10px;padding:13px;margin:12px 0;font:inherit;font-weight:750');
+  btn.type='button';btn.onclick=async()=>{
+   if(!confirm('Confirmer que cet objet a bien été restitué ?'))return;
+   btn.disabled=true;
+   const {data,error}=await ctx.sb.from('objeo_establishment_items').update({status:'returned'}).eq('id',item.id).eq('establishment_id',est.id).eq('status','open').select('id');
+   if(error||!data?.length){alert('Restitution impossible : '+(error?.message||'Annonce indisponible'));btn.disabled=false;return}
+   item.status='returned';returnBox.textContent='✅ Objet restitué';
+  };returnBox.append(btn);
+ }else if(item.status==='returned')returnBox.textContent='✅ Objet restitué';
+ const form=document.getElementById('objeoChatForm');
+ form.onsubmit=async ev=>{
+  ev.preventDefault();const body=form.elements.body.value.trim(),btn=form.querySelector('button[type=submit]'),feedback=document.getElementById('objeoChatFeedback');
+  if(!body)return;btn.disabled=true;
+  try{const {error}=await ctx.sb.from('objeo_pro_messages').insert({conversation_id:c.id,sender_id:ctx.user.id,body});if(error)throw error;form.reset();feedback.textContent='Envoyé.';await load()}
+  catch(e){feedback.textContent='Échec d’envoi : '+e.message}finally{btn.disabled=false}
+ };
+ await load();
+ if(unifiedProActiveId!==c.id)return;
+ unifiedProChannel=ctx.sb.channel('objeo-pro-chat-'+c.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'objeo_pro_messages',filter:'conversation_id=eq.'+c.id},()=>load()).subscribe();
+ unifiedProTimer=setInterval(()=>{if(!document.hidden)load()},8000);
+};
+window.openObjeoProFromListing=async function(itemId){
+ const ctx=await requireObjeoUser();if(!ctx)return;
+ try{
+  const {data:item,error}=await ctx.sb.from('objeo_establishment_items').select('id,title,kind,status,establishment_id').eq('id',itemId).maybeSingle();
+  if(error||!item)throw Error('Annonce indisponible.');
+  const {data:est,error:estError}=await ctx.sb.from('objeo_establishments').select('id,name,owner_id').eq('id',item.establishment_id).single();
+  if(estError||!est)throw Error('Établissement introuvable.');
+  if(est.owner_id===ctx.user.id){await openObjeoMessages();return}
+  let {data:conversation,error:findError}=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').eq('item_id',itemId).eq('seeker_id',ctx.user.id).maybeSingle();
+  if(findError)throw findError;
+  if(!conversation){
+   if(item.status!=='open')throw Error('Annonce clôturée.');
+   const insert=await ctx.sb.from('objeo_pro_conversations').insert({item_id:itemId,seeker_id:ctx.user.id}).select('id,item_id,seeker_id,created_at').single();
+   if(insert.error?.code==='23505'){
+    const retry=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').eq('item_id',itemId).eq('seeker_id',ctx.user.id).single();
+    if(retry.error)throw retry.error;conversation=retry.data;
+   }else{if(insert.error)throw insert.error;conversation=insert.data}
+  }
+  await window.openUnifiedObjeoProThread(ctx,conversation,{items:new Map([[item.id,item]]),est:new Map([[est.id,est]])});
+  history.replaceState(null,'','/');
+ }catch(error){objeoWorkspace('Messagerie 💬','<p role="alert" id="objeoProChatError"></p>');document.getElementById('objeoProChatError').textContent=error.message}
+};
+window.addEventListener('load',()=>{
+ const params=new URLSearchParams(location.search),item=params.get('pro_objet');
+ if(item)window.openObjeoProFromListing(item);
+ else if(params.get('pro_messages')==='1')window.openObjeoMessages();
+});
 window.openObjeoMessages=async function(){
- const ctx=await requireObjeoUser();if(!ctx)return;objeoRealtimeForgetThread();objeoRealtimeStart(ctx);objeoWorkspace('Mes messages 💬','<p id="objeoMessageStatus">Chargement…</p><div id="objeoMessageList"></div>');
+ const ctx=await requireObjeoUser();if(!ctx)return;stopUnifiedProThread();objeoRealtimeForgetThread();objeoRealtimeStart(ctx);objeoWorkspace('Mes messages 💬','<p id="objeoMessageStatus">Chargement…</p><div id="objeoMessageList"></div>');
  try{
  const r=await ctx.sb.from('messages').select('id,body,created_at,sender_id,conversation_id,conversations(ad_id,seeker_id,ads(title,user_id,kind,status))').order('created_at',{ascending:false}).limit(300);
  if(r.error)throw r.error;const groups=new Map();for(const m of r.data||[]){if(!m.conversations)continue;if(!groups.has(m.conversation_id))groups.set(m.conversation_id,[]);groups.get(m.conversation_id).push(m)}
@@ -102,29 +217,8 @@ window.openObjeoMessages=async function(){
  const list=document.getElementById('objeoMessageList'),status=document.getElementById('objeoMessageStatus');if(!list||!status)return;
  status.textContent=groups.size?groups.size+' conversation(s)':'Aucune conversation pour le moment.';
  for(const [id,items]of groups){const meta=items[0].conversations,identity=objeoChatIdentity(person(meta,ctx.user.id),names),card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#fff8f2;border:1px solid #ffddc8;border-radius:12px;cursor:pointer;color:#27313e');card.type='button';card.append(objeoChatIdentityNode(identity),make('div','📦 '+(meta.ads?.title||'Annonce'),'font-size:13px;color:#667085;margin-top:7px'),make('div',(items[0].sender_id===ctx.user.id?'Vous : ':'')+items[0].body.slice(0,100),'margin-top:7px;overflow-wrap:anywhere'),make('small',formatDate(items[0].created_at),'display:block;color:#667085;margin-top:5px'));const n=unread(items,ctx.user.id,reads);if(n)card.append(make('span',n+' nouveau'+(n>1?'x':''),'display:inline-block;margin-top:7px;border-radius:20px;padding:4px 9px;background:#eb6722;color:#fff;font-size:11px'));card.onclick=()=>openObjeoConversation(id,items,ctx,meta);list.append(card)}
- // Surface professional conversations in the same Objeo inbox.
- try{
-  const pro=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,created_at').order('created_at',{ascending:false}).limit(100);
-  if(!pro.error){
-   const entries=pro.data||[];
-   if(entries.length){
-    const ids=[...new Set(entries.map(c=>c.item_id))];
-    const {data:items}=await ctx.sb.from('objeo_establishment_items').select('id,title,establishment_id').in('id',ids);
-    const byId=new Map((items||[]).map(i=>[i.id,i]));
-    for(const conversation of entries){
-     const item=byId.get(conversation.item_id);
-     const card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#eef6ff;border:1px solid #d2e5f9;border-radius:12px;cursor:pointer;color:#27313e');
-     card.type='button';
-     card.append(make('strong','💬 Objeo Pro · '+(item?.title||'Objet signalé')),make('small','Conversation avec un établissement · '+formatDate(conversation.created_at),'display:block;color:#667085;margin-top:7px'));
-     card.onclick=()=>{location.href='/messages-pro.html?conversation='+encodeURIComponent(conversation.id)};
-     list.append(card);
-    }
-   }
-   status.textContent=(groups.size+entries.length)?(groups.size+entries.length)+' conversation(s)':'Aucune conversation pour le moment.';
-  }
-  const proLink=make('a','Ouvrir la messagerie Objeo Pro','display:block;text-align:center;padding:13px;margin:12px 0;border-radius:11px;background:#eef6ff;border:1px solid #c5dcf6;color:#175a95;font-weight:750;text-decoration:none');
-  proLink.href='/messages-pro.html';list.append(proLink);
- }catch(err){console.warn('Boîte Pro indisponible',err)}
+ // Display professional and individual conversations with identical card styling.
+ await objeoAppendProInbox(ctx,list,status,groups.size);
  updateBadges(ctx);
  }catch(e){const label=document.getElementById('objeoMessageStatus');if(label)label.textContent='Messagerie indisponible : '+e.message}
 };
