@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Affiche QR — Objeo Pro</title>
+<link rel="icon" href="/favicon.svg">
+<style>
+:root{font-family:Inter,Arial,Helvetica,sans-serif;color:#173c65;background:#eaf2fc}*{box-sizing:border-box}body{margin:0}.toolbar{max-width:850px;margin:20px auto;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.toolbar a,.toolbar button{border-radius:10px;padding:12px 16px;font-weight:800;font-size:15px;border:1px solid #c4d7ed;background:white;color:#173c65;text-decoration:none;cursor:pointer}.toolbar button{background:#1766b4;color:white;border-color:#1766b4}.toolbar small{color:#496783}.poster{width:min(100% - 24px,190mm);min-height:260mm;margin:0 auto 35px;border:3px solid #dce7f6;border-radius:20px;padding:18mm 12mm;background:#f5f9ff;text-align:center;print-color-adjust:exact;-webkit-print-color-adjust:exact}.brand{color:#ff6e14;font-weight:900;font-size:52px;letter-spacing:-2px}.brand small{font-size:18px;color:#1766b4;letter-spacing:0}.title{font-size:clamp(28px,5vw,38px);font-weight:850;line-height:1.13;margin:13mm auto 6mm}.subtitle{font-size:19px;line-height:1.5;margin:0 auto 7mm;max-width:145mm}.qr{background:#fff;border:2px solid #dae6f3;padding:12px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;min-width:250px;min-height:250px}.qr canvas,.qr img{display:block;width:224px!important;height:224px!important;image-rendering:pixelated}.scan{font-weight:800;font-size:18px;margin:7mm 0 5mm}.place{font-size:23px;font-weight:850;overflow-wrap:anywhere;margin:7mm auto}.website{font-size:39px;color:#1766b4;font-weight:900;letter-spacing:-1px;margin:8mm 0 3mm}.foot{font-size:16px;color:#547089;line-height:1.4;margin:0 auto;max-width:140mm}.error{max-width:850px;margin:20px auto;padding:14px;background:#fff6ec;border:1px solid #f8c9a3;border-radius:12px;color:#8a3810}.hidden{display:none!important}@media(max-width:600px){.toolbar{margin:8px auto}.poster{min-height:0;padding:35px 14px}.brand{font-size:42px}.website{font-size:31px}}@page{size:A4 portrait;margin:10mm}@media print{html,body{background:white;margin:0}.toolbar,.error{display:none!important}.poster{width:100%;min-height:270mm;max-width:none;margin:0;padding:17mm 10mm;border:3px solid #dce7f6;box-shadow:none;break-inside:avoid}.qr{min-width:250px;min-height:250px}}
+</style>
+</head>
+<body>
+<nav class="toolbar" aria-label="Actions sur l'affiche">
+<a href="/etablissements.html">← Retour à Objeo Pro</a>
+<button id="print" type="button" disabled>Imprimer / Enregistrer en PDF</button>
+<small>Sur iPhone, utilisez « Imprimer », puis les options de partage pour enregistrer le PDF.</small>
+</nav>
+<div id="error" role="alert" class="error hidden"></div>
+<main class="poster" id="poster">
+<div class="brand">objeo<small>.online</small></div>
+<h1 class="title">Vous avez perdu un objet ?</h1>
+<p class="subtitle">Retrouvez les objets trouvés dans cet établissement sur <strong>Objeo</strong>.</p>
+<div class="qr" id="qr" aria-label="QR code de l'établissement"><span>Chargement du QR code…</span></div>
+<div class="scan">Scannez ce QR code avec votre téléphone</div>
+<div class="place" id="name"></div>
+<div class="website">objeo.online</div>
+<p class="foot">Consultez les annonces gratuitement et retrouvez ce qui compte.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+ const params=new URLSearchParams(location.search);
+ const id=params.get('etablissement')||'';
+ const name=(params.get('nom')||'Établissement partenaire').slice(0,120);
+ const err=document.getElementById('error'),qr=document.getElementById('qr'),btn=document.getElementById('print');
+ document.getElementById('name').textContent=name;
+ function fail(message){err.textContent=message;err.classList.remove('hidden');qr.textContent='QR code indisponible';btn.disabled=true}
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){fail('Lien établissement invalide. Retournez à Objeo Pro pour générer votre affiche.');return}
+ const target=new URL('/annuaire.html?etablissement='+encodeURIComponent(id),location.origin).href;
+ if(typeof QRCode==='undefined'){fail('Impossible de charger le générateur de QR code. Vérifiez votre connexion puis rechargez cette page.');return}
+ try{
+  qr.replaceChildren();
+  new QRCode(qr,{text:target,width:224,height:224,colorDark:'#173c65',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  const image=qr.querySelector('canvas, img');
+  if(!image){fail('Le QR code n’a pas pu être généré.');return}
+  btn.disabled=false;
+  btn.addEventListener('click',()=>window.print());
+ }catch(error){fail('Erreur lors de la création du QR code : '+error.message)}
+})();
+</script>
+</body></html>
