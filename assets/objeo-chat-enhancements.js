@@ -102,6 +102,29 @@ window.openObjeoMessages=async function(){
  const list=document.getElementById('objeoMessageList'),status=document.getElementById('objeoMessageStatus');if(!list||!status)return;
  status.textContent=groups.size?groups.size+' conversation(s)':'Aucune conversation pour le moment.';
  for(const [id,items]of groups){const meta=items[0].conversations,identity=objeoChatIdentity(person(meta,ctx.user.id),names),card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#fff8f2;border:1px solid #ffddc8;border-radius:12px;cursor:pointer;color:#27313e');card.type='button';card.append(objeoChatIdentityNode(identity),make('div','📦 '+(meta.ads?.title||'Annonce'),'font-size:13px;color:#667085;margin-top:7px'),make('div',(items[0].sender_id===ctx.user.id?'Vous : ':'')+items[0].body.slice(0,100),'margin-top:7px;overflow-wrap:anywhere'),make('small',formatDate(items[0].created_at),'display:block;color:#667085;margin-top:5px'));const n=unread(items,ctx.user.id,reads);if(n)card.append(make('span',n+' nouveau'+(n>1?'x':''),'display:inline-block;margin-top:7px;border-radius:20px;padding:4px 9px;background:#eb6722;color:#fff;font-size:11px'));card.onclick=()=>openObjeoConversation(id,items,ctx,meta);list.append(card)}
+ // Surface professional conversations in the same Objeo inbox.
+ try{
+  const pro=await ctx.sb.from('objeo_pro_conversations').select('id,item_id,created_at').order('created_at',{ascending:false}).limit(100);
+  if(!pro.error){
+   const entries=pro.data||[];
+   if(entries.length){
+    const ids=[...new Set(entries.map(c=>c.item_id))];
+    const {data:items}=await ctx.sb.from('objeo_establishment_items').select('id,title,establishment_id').in('id',ids);
+    const byId=new Map((items||[]).map(i=>[i.id,i]));
+    for(const conversation of entries){
+     const item=byId.get(conversation.item_id);
+     const card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#eef6ff;border:1px solid #d2e5f9;border-radius:12px;cursor:pointer;color:#27313e');
+     card.type='button';
+     card.append(make('strong','💬 Objeo Pro · '+(item?.title||'Objet signalé')),make('small','Conversation avec un établissement · '+formatDate(conversation.created_at),'display:block;color:#667085;margin-top:7px'));
+     card.onclick=()=>{location.href='/messages-pro.html?conversation='+encodeURIComponent(conversation.id)};
+     list.append(card);
+    }
+   }
+   status.textContent=(groups.size+entries.length)?(groups.size+entries.length)+' conversation(s)':'Aucune conversation pour le moment.';
+  }
+  const proLink=make('a','Ouvrir la messagerie Objeo Pro','display:block;text-align:center;padding:13px;margin:12px 0;border-radius:11px;background:#eef6ff;border:1px solid #c5dcf6;color:#175a95;font-weight:750;text-decoration:none');
+  proLink.href='/messages-pro.html';list.append(proLink);
+ }catch(err){console.warn('Boîte Pro indisponible',err)}
  updateBadges(ctx);
  }catch(e){const label=document.getElementById('objeoMessageStatus');if(label)label.textContent='Messagerie indisponible : '+e.message}
 };
