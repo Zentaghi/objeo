@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Messages Objeo Pro</title><link rel="icon" href="/favicon.svg">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#263443;background:#f6f8fc}*{box-sizing:border-box}body{margin:0}a{color:#1766b4}header{background:#fff;border-bottom:1px solid #e3e8ef;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:16px max(18px,calc((100vw - 920px)/2))}header strong{font-size:23px;color:#ff6e14}header span{color:#1766b4;font-size:13px}.wrap{max-width:920px;margin:24px auto;padding:0 17px}h1{font-size:clamp(25px,4vw,33px);margin:8px 0 12px}.muted{color:#627385;font-size:14px;line-height:1.5}.panel{background:#fff;border:1px solid #e0e7ef;border-radius:17px;padding:18px;margin:15px 0;box-shadow:0 8px 24px #213d560b}button,.btn{font:inherit;border:0;background:#1766b4;color:#fff;padding:12px 16px;border-radius:11px;min-height:45px;font-weight:750;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}button:disabled{opacity:.55;cursor:wait}.outline{background:#eef4fc;color:#19588c}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #9fcafa;outline-offset:2px}.thread{max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin:15px 0;padding:10px 1px}.bubble{border-radius:15px;padding:12px 14px;background:#edf3f8;max-width:85%;align-self:flex-start;overflow-wrap:anywhere;white-space:pre-wrap}.bubble.own{align-self:flex-end;background:#e9f3ff}.bubble small{display:block;font-size:11px;color:#687c8c;margin-top:6px}.inbox-item{width:100%;background:#fff;color:#233449;border:1px solid #e1e9f2;text-align:left;display:block;margin:8px 0;padding:15px;min-height:65px}.inbox-item strong,.inbox-item small{display:block}.inbox-item small{font-size:12px;color:#68798a;margin-top:5px}textarea{width:100%;font:inherit;border:1px solid #ccd8e6;border-radius:12px;padding:13px;min-height:95px;resize:vertical;font-size:16px}form{display:grid;gap:10px}.actions{display:flex;flex-wrap:wrap;gap:10px}.status{font-size:13px;color:#405d7d;overflow-wrap:anywhere}.hidden{display:none!important}@media(max-width:600px){header{padding:13px}.wrap{margin:12px auto}.panel{padding:14px}.bubble{max-width:92%}}
+</style></head><body>
+<header><a href="/" aria-label="Accueil Objeo" style="text-decoration:none"><strong>Objeo</strong> <span>MESSAGERIE</span></a><a href="/etablissements.html">Espace Pro</a></header>
+<main class="wrap"><div class="actions"><a class="btn outline" href="/annuaire.html">← Annonces</a><a class="btn outline" href="/">Accueil</a></div><h1>Mes conversations</h1><p class="muted">Échangez directement avec les établissements et les personnes qui recherchent leurs objets. Ne partagez pas de code secret ni de données sensibles.</p>
+<section id="loginBox" class="panel hidden"><h2>Connectez-vous à Objeo</h2><p>Connectez-vous avec votre compte Objeo pour accéder aux messages.</p><a class="btn" href="/etablissements.html">Se connecter</a></section>
+<section id="inbox" class="panel"><h2>Conversations Objeo Pro</h2><p id="inboxStatus" class="status">Chargement…</p><div id="inboxList"></div></section>
+<section id="conversation" class="panel hidden"><button type="button" class="outline" id="back">← Mes conversations</button><h2 id="threadTitle">Conversation</h2><p id="threadInfo" class="muted"></p><div id="thread" class="thread" role="log" aria-live="polite"></div><form id="messageForm"><label for="body">Votre message</label><textarea id="body" maxlength="2000" required placeholder="Bonjour, je vous contacte au sujet de cet objet…"></textarea><button type="submit" id="send">Envoyer le message</button><p id="sendStatus" class="status" role="status"></p></form></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const sb=window.supabase.createClient('https://cvsecsmaczyadidapuyi.supabase.co','sb_publishable_btaX4jgtCGbB4piFnoiJfQ_JZkFMN2P',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+let user=null,active=null,channel=null,poll=null;
+const params=new URLSearchParams(location.search);
+const itemsById=new Map(),estById=new Map(),seen=new Set();
+const time=t=>{const d=new Date(t);return Number.isNaN(+d)?'':d.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})};
+function status(message){$('sendStatus').textContent=message}
+function setLogin(show){$('loginBox').classList.toggle('hidden',!show);$('inbox').classList.toggle('hidden',show)}
+async function loadMetadata(conversations){
+ const ids=[...new Set(conversations.map(x=>x.item_id))];
+ if(!ids.length)return;
+ const {data:items,error}=await sb.from('objeo_establishment_items').select('id,title,establishment_id,status,kind').in('id',ids);
+ if(error)throw error;
+ for(const item of items||[])itemsById.set(item.id,item);
+ const estIds=[...new Set((items||[]).map(x=>x.establishment_id))];
+ if(!estIds.length)return;
+ const {data:ests,error:estError}=await sb.from('objeo_establishments').select('id,name,owner_id').in('id',estIds);
+ if(estError)throw estError;
+ for(const est of ests||[])estById.set(est.id,est);
+}
+function headline(c){const item=itemsById.get(c.item_id);const est=estById.get(item?.establishment_id);return (item?.title||'Objet')+' · '+(est?.name||'Établissement')}
+async function loadInbox(){
+ const {data,error}=await sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error)throw error;
+ const all=data||[];await loadMetadata(all);
+ const list=$('inboxList');list.replaceChildren();
+ $('inboxStatus').textContent=all.length?all.length+' conversation(s)':'Aucune conversation pour le moment.';
+ for(const c of all){
+  const el=document.createElement('button');el.type='button';el.className='inbox-item';
+  const title=document.createElement('strong'),meta=document.createElement('small');
+  title.textContent=headline(c);
+  const item=itemsById.get(c.item_id),est=estById.get(item?.establishment_id);
+  meta.textContent=(est?.owner_id===user.id?'Conversation avec un visiteur':'Conversation avec l’établissement')+' · '+time(c.created_at);
+  el.append(title,meta);el.onclick=()=>openThread(c);list.append(el);
+ }
+ return all;
+}
+async function openThread(c){
+ active=c;seen.clear();$('conversation').classList.remove('hidden');$('inbox').classList.add('hidden');
+ $('threadTitle').textContent=headline(c);const item=itemsById.get(c.item_id);
+ $('threadInfo').textContent=(item?.status==='returned'?'Objet clôturé · ':'' )+'Discutez de la récupération en toute sécurité.';
+ await loadMessages();
+ if(channel){sb.removeChannel(channel);channel=null}
+ channel=sb.channel('pro-thread-'+c.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'objeo_pro_messages',filter:'conversation_id=eq.'+c.id},()=>loadMessages()).subscribe();
+ if(poll)clearInterval(poll);poll=setInterval(()=>{if(!document.hidden)loadMessages()},8000);
+}
+async function loadMessages(){
+ if(!active)return;
+ const id=active.id;
+ const {data,error}=await sb.from('objeo_pro_messages').select('id,body,sender_id,created_at').eq('conversation_id',id).order('created_at',{ascending:true}).limit(400);
+ if(error){status('Lecture impossible : '+error.message);return}
+ if(!active||active.id!==id)return;
+ const root=$('thread');for(const m of data||[]){
+  if(seen.has(m.id))continue;seen.add(m.id);
+  const node=document.createElement('div');node.className='bubble'+(m.sender_id===user.id?' own':'');
+  const body=document.createElement('div');body.textContent=m.body;
+  const stamp=document.createElement('small');stamp.textContent=(m.sender_id===user.id?'Moi':'Correspondant')+' · '+time(m.created_at);
+  node.append(body,stamp);root.append(node);
+ }
+ root.scrollTop=root.scrollHeight;
+}
+async function openOrCreate(itemId){
+ if(!/^[0-9a-f-]{36}$/i.test(itemId))throw Error('Annonce invalide.');
+ const {data:item,error}=await sb.from('objeo_establishment_items').select('id,title,establishment_id,status,kind').eq('id',itemId).maybeSingle();
+ if(error||!item)throw Error('Annonce introuvable ou indisponible.');
+ const {data:est,error:err}=await sb.from('objeo_establishments').select('id,name,owner_id').eq('id',item.establishment_id).single();
+ if(err)throw err;
+ if(est.owner_id===user.id)throw Error('Pour répondre aux visiteurs, ouvrez une conversation depuis votre boîte de réception.');
+ if(item.status!=='open')throw Error('Cette annonce est clôturée.');
+ let {data:c,error:findError}=await sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').eq('item_id',itemId).eq('seeker_id',user.id).maybeSingle();
+ if(findError)throw findError;
+ if(!c){
+  const result=await sb.from('objeo_pro_conversations').insert({item_id:itemId,seeker_id:user.id}).select('id,item_id,seeker_id,created_at').single();
+  if(result.error?.code==='23505'){
+   const retry=await sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').eq('item_id',itemId).eq('seeker_id',user.id).single();
+   if(retry.error)throw retry.error;c=retry.data;
+  }else{if(result.error)throw result.error;c=result.data}
+ }
+ itemsById.set(item.id,item);estById.set(est.id,est);await openThread(c);
+}
+$('messageForm').onsubmit=async ev=>{
+ ev.preventDefault();if(!active)return;
+ const body=$('body').value.trim();if(!body)return;
+ const button=$('send');button.disabled=true;
+ try{const {error}=await sb.from('objeo_pro_messages').insert({conversation_id:active.id,sender_id:user.id,body});if(error)throw error;
+ $('body').value='';status('Message envoyé.');await loadMessages();
+ }catch(error){status('Envoi impossible : '+error.message)}finally{button.disabled=false}
+};
+$('back').onclick=async()=>{active=null;if(channel){sb.removeChannel(channel);channel=null}if(poll){clearInterval(poll);poll=null}$('conversation').classList.add('hidden');$('inbox').classList.remove('hidden');$('thread').replaceChildren();seen.clear();await loadInbox()};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active)loadMessages()});
+window.addEventListener('beforeunload',()=>{if(channel)sb.removeChannel(channel);if(poll)clearInterval(poll)});
+(async()=>{try{const r=await sb.auth.getUser();user=r.data?.user||null;if(!user){setLogin(true);return}const all=await loadInbox();const itemId=params.get('objet');const conversationId=params.get('conversation');
+ if(itemId)await openOrCreate(itemId);
+ else if(conversationId){const c=all.find(x=>x.id===conversationId);if(c)await openThread(c)}
+ }catch(error){$('inboxStatus').textContent='Messagerie indisponible : '+error.message;status(error.message)}})();
+</script></body></html>
