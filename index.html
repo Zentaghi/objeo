@@ -333,6 +333,15 @@ body.objeo-professional-chat-only #objeoWorkspace{visibility:visible!important}
  header .head-right .iconbtn[title="Favoris"]{display:none}
  .hero .categories{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+@media (min-width:1100px) and (max-width:1399px){
+  /* Keep the central navigation usable on compact laptop screens. */
+  header .navlinks button:nth-of-type(5){display:none}
+  header .navlinks a:last-child{display:none}
+  header .head-right .iconbtn.activity-header-link{display:none}
+  header .head-right .iconbtn[title="Favoris"]{display:none}
+  header .head{gap:12px}
+  header .head-right>.primary{padding:12px 13px}
+}
 @media (min-width:701px) and (max-width:1099px){
  .wrap{max-width:100%;padding-left:26px;padding-right:26px}
  .hero{padding:48px 0 30px}
