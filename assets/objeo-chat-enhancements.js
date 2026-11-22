@@ -281,6 +281,27 @@ window.addEventListener('load',()=>{
  }
  else if(params.get('pro_messages')==='1')window.openObjeoMessages();
 });
+let objeoInboxPollTimer=null;
+function startObjeoInboxPolling(){
+ if(objeoInboxPollTimer)return;
+ objeoInboxPollTimer=setInterval(async()=>{
+  const list=document.getElementById('objeoMessageList');
+  if(!list?.isConnected){clearInterval(objeoInboxPollTimer);objeoInboxPollTimer=null;return}
+  if(document.hidden)return;
+  try{
+   const sb=auth2GetClient();
+   const [regular,pro,convos]=await Promise.all([
+    sb.from('messages').select('created_at').order('created_at',{ascending:false}).limit(1),
+    sb.from('objeo_pro_messages').select('created_at').order('created_at',{ascending:false}).limit(1),
+    sb.from('objeo_pro_conversations').select('created_at').order('created_at',{ascending:false}).limit(1)
+   ]);
+   if(regular.error||pro.error||convos.error)return;
+   const latest=Math.max(0,Date.parse(regular.data?.[0]?.created_at)||0,Date.parse(pro.data?.[0]?.created_at)||0,Date.parse(convos.data?.[0]?.created_at)||0);
+   const displayed=Math.max(0,...[...list.querySelectorAll('button[data-last-activity]')].map(el=>Number(el.dataset.lastActivity)||0));
+   if(latest>displayed)window.openObjeoMessages();
+  }catch(e){console.warn('Actualisation boîte de réception',e)}
+ },15000);
+}
 window.openObjeoMessages=async function(){
  const ctx=await requireObjeoUser();if(!ctx)return;stopUnifiedProThread();objeoRealtimeForgetThread();objeoRealtimeStart(ctx);objeoWorkspace('Mes messages 💬','<p id="objeoMessageStatus">Chargement…</p><div id="objeoMessageList"></div>');
  try{
@@ -292,6 +313,7 @@ window.openObjeoMessages=async function(){
  for(const [id,items]of groups){const meta=items[0].conversations,identity=objeoChatIdentity(person(meta,ctx.user.id),names),card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#fff8f2;border:1px solid #ffddc8;border-radius:12px;cursor:pointer;color:#27313e');card.type='button';card.append(objeoChatIdentityNode(identity),make('div','📦 '+(meta.ads?.title||'Annonce'),'font-size:13px;color:#667085;margin-top:7px'),make('div',(items[0].sender_id===ctx.user.id?'Vous : ':'')+items[0].body.slice(0,100),'margin-top:7px;overflow-wrap:anywhere'),make('small',formatDate(items[0].created_at),'display:block;color:#667085;margin-top:5px'));const n=unread(items,ctx.user.id,reads);card.className='objeo-inbox-conversation';card.dataset.lastActivity=String(Date.parse(items[0].created_at)||0);setObjeoUnreadBadge(card,n);card.onclick=()=>openObjeoConversation(id,items,ctx,meta);list.append(card)}
  // Display professional and individual conversations with identical card styling.
  await objeoAppendProInbox(ctx,list,status,groups.size);
+ startObjeoInboxPolling();
  updateBadges(ctx);
  }catch(e){const label=document.getElementById('objeoMessageStatus');if(label)label.textContent='Messagerie indisponible : '+e.message}
 };
