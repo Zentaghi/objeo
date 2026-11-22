@@ -5,10 +5,42 @@ const formatDate=value=>{const d=new Date(value);return Number.isNaN(+d)?'':new 
 const person=(meta,userId)=>String(meta?.ads?.user_id)===String(userId)?meta?.seeker_id:meta?.ads?.user_id;
 const make=(tag,text,styles)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(styles)el.style.cssText=styles;return el};
 const messageNode=(message,ctx,identity)=>{
- const item=make('div',undefined,'padding:12px 14px;margin:9px 0;background:#f5f6f8;border-radius:12px;overflow-wrap:anywhere;white-space:pre-wrap');
- item.append(make('div',(message.sender_id===ctx.user.id?'Moi':identity.name)+' : '+message.body),make('small',formatDate(message.created_at),'display:block;margin-top:6px;color:#667085;font-size:11px'));
+ const own=message.sender_id===ctx.user.id;
+ const item=make('article');
+ item.className='objeo-chat-bubble'+(own?' is-mine':' is-theirs');
+ const body=make('div',message.body);
+ body.className='objeo-chat-message-body';
+ const stamp=make('time',formatDate(message.created_at));
+ stamp.className='objeo-chat-time';
+ if(message.created_at)stamp.dateTime=message.created_at;
+ item.append(body,stamp);
+ item.setAttribute('aria-label',(own?'Vous':identity.name)+' : '+message.body);
  return item;
 };
+function decorateObjeoChatWorkspace(){
+ const root=document.getElementById('objeoWorkspace');
+ if(!root)return;
+ root.classList.add('objeo-chat-mode');
+ const history=document.getElementById('objeoChatMessages');
+ if(history){history.setAttribute('role','log');history.setAttribute('aria-live','polite');history.setAttribute('aria-label','Messages de la conversation')}
+ const form=document.getElementById('objeoChatForm');
+ if(form){
+  form.classList.add('objeo-chat-composer');
+  const field=form.elements.body;
+  if(field){
+   field.setAttribute('aria-label','Écrire un message');
+   field.placeholder='Écrire un message…';
+   field.rows=2;
+   const send=form.querySelector('button[type=submit]');
+   if(send){send.textContent='Envoyer ↗';send.setAttribute('aria-label','Envoyer le message')}
+   field.addEventListener('keydown',event=>{
+    if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.isComposing){
+     event.preventDefault();form.requestSubmit();
+    }
+   });
+  }
+ }
+}
 async function markers(ctx){
  const r=await ctx.sb.from('objeo_message_reads').select('conversation_id,last_read_at').eq('user_id',ctx.user.id).limit(500);
  if(r.error){console.warn('Read receipts not installed',r.error.message);return null}
@@ -147,6 +179,7 @@ window.openUnifiedObjeoProThread=async function(ctx,c,metadata){
  const identity=owner?objeoChatIdentity(other,names):{name:est.name,isPro:true};
  unifiedProActiveId=c.id;
  objeoWorkspace('Conversation 💬','<div id="objeoChatHeading" style="padding:14px;border-radius:12px;background:#fff8f2;border:1px solid #ffddc8"></div><div id="objeoChatOwnerReturn"></div><p id="objeoRealtimeStatus" role="status" style="font-size:12px;color:#667085;margin:10px 0">Messages Objeo</p><div id="objeoChatMessages" aria-live="polite"></div><form id="objeoChatForm"><textarea name="body" required maxlength="2000" rows="3" placeholder="Votre message"></textarea><button type="submit" style="background:#ff6e14;color:#fff;border:0;border-radius:12px;padding:14px;width:100%">Envoyer</button><p id="objeoChatFeedback" role="status"></p></form>');
+ decorateObjeoChatWorkspace();
  const heading=document.getElementById('objeoChatHeading');
  if(!heading)return;
  heading.append(objeoChatIdentityNode(identity),make('small','À propos de : '+item.title,'display:block;margin-top:7px;color:#667085'));
@@ -234,6 +267,7 @@ async function objeoChatOwnerReturn(ctx,meta){const root=document.getElementById
 window.openObjeoConversation=async function(id,items,ctx,metadata){
  stopUnifiedProThread();
  const meta=metadata||items[0]?.conversations,other=person(meta,ctx.user.id);objeoRealtimeStart(ctx);objeoRealtimeForgetThread();objeoRealtimeActiveThread=String(id);objeoRealtimeThreadCtx=ctx;objeoWorkspace('Conversation 💬','<div id="objeoChatHeading" style="padding:14px;border-radius:12px;background:#fff8f2;border:1px solid #ffddc8"></div><div id="objeoChatClaimStatus" style="padding:14px;margin:12px 0;border:1px solid #eee;border-radius:12px"></div><div id="objeoChatOwnerReturn"></div><p id="objeoRealtimeStatus" role="status" style="font-size:12px;color:#667085;margin:10px 0">Connexion à la messagerie…</p><div id="objeoChatMessages" aria-live="polite"></div><form id="objeoChatForm"><textarea name="body" required maxlength="2000" rows="3" placeholder="Votre message"></textarea><button type="submit" style="background:#ff6e14;color:#fff;border:0;border-radius:12px;padding:14px;width:100%">Envoyer</button><p id="objeoChatFeedback" role="status"></p></form>');
+ decorateObjeoChatWorkspace();
  const identities=await objeoLoadChatIdentities(ctx.sb,[other],ctx.user),identity=objeoChatIdentity(other,identities),header=document.getElementById('objeoChatHeading');if(!header)return;header.append(objeoChatIdentityNode(identity),make('small','À propos de : '+(meta?.ads?.title||'Annonce'),'display:block;margin-top:7px;color:#667085'));
  const thread=document.getElementById('objeoChatMessages');objeoRealtimeThreadIdentity=identity;for(const m of [...items].reverse()){objeoRealtimeThreadKeys.add(String(m.id));const node=messageNode(m,ctx,identity);node.dataset.messageId=String(m.id);thread.append(node)}objeoRealtimeStatus(objeoRealtimeState);await claimStatus(ctx,meta,other);await objeoChatOwnerReturn(ctx,meta);if(objeoRealtimeActiveThread===String(id))await markRead(ctx,id);
  const form=document.getElementById('objeoChatForm');if(!form)return;form.onsubmit=async e=>{e.preventDefault();const body=form.elements.body.value.trim(),button=form.querySelector('button[type=submit]'),status=document.getElementById('objeoChatFeedback');if(!body)return;button.disabled=true;try{const r=await ctx.sb.from('messages').insert({conversation_id:id,body}).select('id,body,created_at,sender_id').single();if(r.error)throw r.error;const key=String(r.data.id);if(!objeoRealtimeThreadKeys.has(key)){objeoRealtimeThreadKeys.add(key);const node=messageNode({...r.data,sender_id:ctx.user.id},ctx,identity);node.dataset.messageId=key;thread.append(node)}form.reset();status.textContent='Envoyé.';await markRead(ctx,id)}catch(err){status.textContent='Échec d’envoi : '+err.message}finally{button.disabled=false}};
