@@ -51,7 +51,7 @@ body.objeo-unified-detail #feedback{max-width:870px;margin:auto;padding:0 18px}
  .unified-detail-info h1{margin-top:16px}
  .unified-claim{padding:16px}
 }
-</style></head><body>
+</style><style id="objeo-pro-direct-messaging-style">.unified-direct-chat{padding:20px;border:1px solid #d4e6f4;background:#f3f8ff;border-radius:17px;margin:24px 0}.unified-direct-chat h3{font-size:22px;color:#263f5a;margin:0 0 10px}.unified-direct-chat p{font-size:14px;line-height:1.6;color:#5a6b7e;margin:0 0 15px}.unified-contact-button{display:flex;align-items:center;justify-content:center;min-height:53px;width:100%;background:#1766b4;color:white;text-decoration:none;font-weight:800;font-size:16px;border-radius:11px}.unified-contact-button:hover{background:#115a9f}</style></head><body>
 <header><a class="logo" href="/">Objeo <span>PARTENAIRES</span></a><nav><a href="/">Accueil</a><a href="/etablissements.html">Espace Pro</a></nav></header>
 <main class="container">
 <section id="publicHome"><div class="hero"><span class="eyebrow">ANNUAIRE PUBLIC</span><h1>Retrouvez les objets signalés près de chez vous</h1><p>Consultez les établissements partenaires et leurs objets perdus ou trouvés. L'accès est gratuit, sans création de compte pour consulter les annonces.</p></div>
@@ -80,7 +80,7 @@ function showSelected(item,est){
  $('profileOverview').classList.add('hidden');
  const found=item.kind==='found',url=profileUrl(est.id,item.id);
  const photo=item.photo_path?'<img class="unified-detail-photo" src="'+esc(photoUrl(item.photo_path))+'" alt="Photo de l’objet" loading="eager">':'<div class="unified-detail-fallback" aria-label="Objet sans photo">📦</div>';
- const claim=found?'<section class="claim-wrap unified-claim"><h3>Cet objet vous appartient ?</h3><p>Décrivez un détail que vous seul connaissez, non visible dans l’annonce. Le responsable vérifiera votre demande avant de rendre l’objet.</p><form id="claimForm"><label for="claimEvidence">Preuve de propriété<textarea id="claimEvidence" minlength="20" maxlength="1500" required placeholder="Ex. une particularité non visible sur la photo (ne partagez aucun code ni document personnel)…"></textarea></label><button type="submit">Envoyer ma revendication</button><div id="claimStatus" class="status" role="status" aria-live="polite"></div></form></section>':'<div class="unified-lost-note">Vous avez retrouvé cet objet ? Consultez les coordonnées de l’établissement pour le contacter.</div>';
+ const claim='<section class="unified-direct-chat"><h3>'+(found?'Cet objet vous appartient ?':'Vous avez retrouvé cet objet ?')+'</h3><p>Échangez directement avec l’établissement par la messagerie privée Objeo, comme pour une annonce de particulier. Ne partagez jamais de mot de passe ni de code secret.</p><a class="unified-contact-button" id="contactPro" href="/messages-pro.html?objet='+encodeURIComponent(item.id)+'">💬 Contacter l’établissement</a></section>';
  $('selectedItem').innerHTML='<div class="unified-detail-toolbar"><button type="button" class="unified-back" id="allEstItems">← Annonces</button><strong>Détails de l’annonce</strong></div>'
  +'<div class="unified-detail-publisher"><span class="unified-person-icon" aria-hidden="true">●</span> Publié par : <strong>'+esc(est.name)+'</strong><span class="unified-publisher-type">Établissement Objeo Pro</span></div>'
  +'<div class="unified-detail-content"><div class="unified-detail-image">'+photo+'</div>'
@@ -96,7 +96,7 @@ function showSelected(item,est){
  $('shareWhatsApp').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent('Objet '+(found?'trouvé':'perdu')+' : '+item.title+' — '+url),'_blank','noopener,noreferrer');
  $('shareFacebook').onclick=()=>window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),'_blank','noopener,noreferrer');
  $('shareInstagram').onclick=async()=>{if(navigator.share){try{await navigator.share({title:item.title,text:'Annonce Objeo',url});return}catch(e){if(e.name==='AbortError')return}}await copyItemLink(url);const hint=$('shareFeedback');if(hint)hint.textContent='Lien copié : collez-le dans Instagram.'};
- if(found){$('claimForm').onsubmit=ev=>submitClaim(ev,item);updateProClaimEligibility(est,item)}
+ // Contact now opens the same conversation-style workflow as other Objeo listings.
 }
 async function copyItemLink(url){const detail=$('shareFeedback');try{await navigator.clipboard.writeText(url);if(detail)detail.textContent='Lien copié !';else feedback('Lien copié.')}catch(e){if(detail)detail.textContent='Copiez ce lien : '+url;else feedback('Lien : '+url)}}
 async function proClaimAccountRestriction(user,est){
