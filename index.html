@@ -605,4 +605,12 @@ async function objeoLogoutV2(){closeObjeoWorkspaceWithoutSync();window.objeoReal
 window.addEventListener('load',async()=>{const params=new URLSearchParams(location.search);const hash=new URLSearchParams(location.hash.slice(1));if(params.get('account')!=='1'&&!params.has('code')&&!hash.has('access_token')&&!params.has('error')&&!hash.has('error'))return;await openObjeoAuthV2();try{const sb=auth2GetClient();const code=params.get('code');if(code){const {error}=await sb.auth.exchangeCodeForSession(code);if(error&&!(await sb.auth.getSession()).data?.session)throw error}const errorText=params.get('error_description')||hash.get('error_description');if(errorText)throw Error(errorText);const {data,error}=await sb.auth.getSession();if(error)throw error;if(data?.session){await objeoEnforceAccountSpace();await openObjeoAuthV2();document.getElementById('legacyFrame')?.contentWindow?.location.reload()}else if(params.get('account')==='1'){document.getElementById('auth2Status').textContent='Connexion Google non finalisée. Réessayez.'}}catch(e){document.getElementById('auth2Status').textContent='Connexion Google : '+(e.message||String(e))}finally{if(params.has('code')||params.has('error')||params.has('account')||hash.has('access_token')||hash.has('error'))history.replaceState(null,'',location.pathname)}});
 </script><script>
 window.addEventListener('load',()=>{objeoEnforceAccountSpace();auth2GetClient().auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT')setTimeout(objeoEnforceAccountSpace,0)})});
-</script><script src="/assets/objeo-chat-enhancements.js?v=20261122-pro-separation" defer></script></body></html>
+</script><script src="/assets/objeo-chat-enhancements.js?v=20261122-pro-separation" defer></script><script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function (error) {
+      console.warn('Objeo PWA : service worker indisponible', error);
+    });
+  });
+}
+</script></body></html>
