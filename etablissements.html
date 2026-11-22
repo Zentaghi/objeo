@@ -446,8 +446,20 @@ function previewItemPhotoCleanup(){const img=$('itemPhotoPreview');if(img.datase
 async function loadMine(){
  if(!myEst)return;
  const {data,error}=await sb.from('objeo_establishment_items').select('id,title,category,description,kind,happened_on,status,created_at,photo_path').eq('establishment_id',myEst.id).order('created_at',{ascending:false});
- if(error)return msg('Chargement des annonces impossible : '+errorText(error));
- myProItems=data||[];renderMine();refreshProInsights();renderProMonthlyAnalytics();$('proMetricActive').textContent=String(myProItems.filter(x=>x.status==='open').length);$('proMetricReturned').textContent=String(myProItems.filter(x=>x.status==='returned').length);
+ if(error){
+  $('proMetricActive').textContent='—';
+  $('proMetricReturned').textContent='—';
+  $('proMetricRate').textContent='—';
+  msg('Impossible de mettre à jour les compteurs : '+errorText(error));
+  throw error;
+ }
+ myProItems=data||[];
+ renderMine();refreshProInsights();renderProMonthlyAnalytics();
+ const active=myProItems.filter(x=>x.status==='open').length,returned=myProItems.filter(x=>x.status==='returned').length;
+ $('proMetricActive').textContent=String(active);
+ $('proMetricReturned').textContent=String(returned);
+ $('proMetricReturned').setAttribute('aria-label',returned+' objets restitués ou retrouvés');
+ return {active,returned};
 }
 function renderMine(){
  const items=myProItems,open=items.filter(x=>x.status==='open').length,returned=items.filter(x=>x.status==='returned').length;
@@ -582,7 +594,12 @@ function stopProAutoRefresh(){if(proRefreshTimer!==null){clearInterval(proRefres
 async function refreshProForeground(){
  if(document.hidden||!myEst||!user||proRefreshBusy||proRefreshEstId!==myEst.id)return;
  proRefreshBusy=true;
- try{await Promise.all([loadProClaims(),loadMine()]);$('proLiveStatus').textContent='Demandes et annonces actualisées · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+ try{
+  const results=await Promise.allSettled([loadProClaims(),loadMine(),loadProReturns()]);
+  const failed=results.filter(x=>x.status==='rejected');
+  if(failed.length)throw failed[0].reason;
+  $('proLiveStatus').textContent='Demandes, restitutions et annonces actualisées · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ }
  catch(e){$('proLiveStatus').textContent='Actualisation temporairement indisponible. Utilisez le bouton Actualiser.'}
  finally{proRefreshBusy=false}
 }
@@ -595,6 +612,8 @@ function startProAutoRefresh(){
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshProForeground()});
 window.addEventListener('focus',refreshProForeground);
+window.addEventListener('pageshow',event=>{if(event.persisted)refreshProForeground()});
+
 
 $('itemDate').value=proLocalToday();loadDirectory();refreshAccount();sb.auth.onAuthStateChange(()=>{setTimeout(refreshAccount,0)});
 </script></body></html>
