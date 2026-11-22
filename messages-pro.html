@@ -16,7 +16,8 @@ const sb=window.supabase.createClient('https://cvsecsmaczyadidapuyi.supabase.co'
 const $=id=>document.getElementById(id);
 let user=null,active=null,channel=null,poll=null;
 const params=new URLSearchParams(location.search);
-const itemsById=new Map(),estById=new Map(),seen=new Set();
+const itemsById=new Map(),estById=new Map(),namesById=new Map(),seen=new Set();
+let partnerName='Correspondant';
 const time=t=>{const d=new Date(t);return Number.isNaN(+d)?'':d.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})};
 function status(message){$('sendStatus').textContent=message}
 function setLogin(show){$('loginBox').classList.toggle('hidden',!show);$('inbox').classList.toggle('hidden',show)}
@@ -37,6 +38,8 @@ async function loadInbox(){
  const {data,error}=await sb.from('objeo_pro_conversations').select('id,item_id,seeker_id,created_at').order('created_at',{ascending:false}).limit(100);
  if(error)throw error;
  const all=data||[];await loadMetadata(all);
+ const otherIds=[...new Set(all.map(c=>c.seeker_id).filter(id=>id&&id!==user.id))];
+ if(otherIds.length){const {data:people}=await sb.from('profiles').select('id,name').in('id',otherIds);for(const person of people||[])namesById.set(person.id,person.name||'Membre Objeo')}
  const list=$('inboxList');list.replaceChildren();
  $('inboxStatus').textContent=all.length?all.length+' conversation(s)':'Aucune conversation pour le moment.';
  for(const c of all){
@@ -44,7 +47,7 @@ async function loadInbox(){
   const title=document.createElement('strong'),meta=document.createElement('small');
   title.textContent=headline(c);
   const item=itemsById.get(c.item_id),est=estById.get(item?.establishment_id);
-  meta.textContent=(est?.owner_id===user.id?'Conversation avec un visiteur':'Conversation avec l’établissement')+' · '+time(c.created_at);
+  meta.textContent=(est?.owner_id===user.id?'Avec '+(namesById.get(c.seeker_id)||'Membre Objeo'):'Avec '+(est?.name||'l’établissement'))+' · '+time(c.created_at);
   el.append(title,meta);el.onclick=()=>openThread(c);list.append(el);
  }
  return all;
@@ -54,6 +57,7 @@ async function openThread(c){
  $('threadTitle').textContent=headline(c);const item=itemsById.get(c.item_id);
  $('threadInfo').textContent=(item?.status==='returned'?'Objet clôturé · ':'')+'Discutez de la récupération en toute sécurité.';
  const est=estById.get(item?.establishment_id),owner=est?.owner_id===user.id;
+ partnerName=owner?(namesById.get(c.seeker_id)||'Membre Objeo'):(est?.name||'Établissement Objeo');
  const action=$('returnAction');action.classList.toggle('hidden',!(owner&&item?.status==='open'));
  if(owner&&item?.status==='open')$('confirmReturn').onclick=async()=>{
   if(!confirm('Confirmer que l’objet a bien été remis ou récupéré ? La conversation restera accessible.'))return;
@@ -79,7 +83,7 @@ async function loadMessages(){
   if(seen.has(m.id))continue;seen.add(m.id);
   const node=document.createElement('div');node.className='bubble'+(m.sender_id===user.id?' own':'');
   const body=document.createElement('div');body.textContent=m.body;
-  const stamp=document.createElement('small');stamp.textContent=(m.sender_id===user.id?'Moi':'Correspondant')+' · '+time(m.created_at);
+  const stamp=document.createElement('small');stamp.textContent=(m.sender_id===user.id?'Moi':partnerName)+' · '+time(m.created_at);
   node.append(body,stamp);root.append(node);
  }
  root.scrollTop=root.scrollHeight;
