@@ -416,7 +416,35 @@ window.addEventListener('message',event=>{if(event.origin!==location.origin||eve
 let lastAdSignature='';function syncRealAds(){const w=legacyWindow();if(!w||!w.all_)return;const raw=w.all_();const signature=raw.map(d=>String(d[7])+'|'+String(d[2])+'|'+String(d[3])).join(';');if(signature===lastAdSignature)return;lastAdSignature=signature;ads=raw.map((d,i)=>({id:String(d[7]||i),title:d[2],type:d[0]==='p'?'lost':'found',cat:displayCategory(d[4]),city:d[3],date:d[5]||'',emoji:d[1]||'📦',bg:i%4+1,desc:d[10]||'',photo:d[8]||null}));if(geoResults===null)render();indexCities()}
 const PRO_URL='https://cvsecsmaczyadidapuyi.supabase.co/rest/v1/';const PRO_KEY='sb_publishable_btaX4jgtCGbB4piFnoiJfQ_JZkFMN2P';let proLoading=false;
 async function loadProfessionalAds(){if(proLoading)return;proLoading=true;try{const headers={apikey:PRO_KEY,Authorization:'Bearer '+PRO_KEY};const [itemsResponse,estResponse]=await Promise.all([fetch(PRO_URL+'objeo_establishment_items?select=id,establishment_id,title,category,description,kind,happened_on,status,created_at,photo_path&status=eq.open&order=created_at.desc&limit=300',{headers}),fetch(PRO_URL+'objeo_establishments?select=id,name,city&limit=300',{headers})]);if(!itemsResponse.ok||!estResponse.ok)throw Error('professional tables unavailable');const items=await itemsResponse.json(),ests=await estResponse.json(),byId=new Map(ests.map(e=>[e.id,e]));proAds=items.filter(x=>byId.has(x.establishment_id)).map((x,i)=>{const e=byId.get(x.establishment_id);return {id:'pro-'+x.id,professional:true,establishmentId:e.id,establishmentName:e.name,title:x.title,type:x.kind==='lost'?'lost':'found',cat:displayCategory(x.category),city:e.city,date:x.happened_on||'',emoji:'📦',bg:i%4+1,desc:e.name+' · '+(x.description||''),photo:x.photo_path?'https://cvsecsmaczyadidapuyi.supabase.co/storage/v1/object/public/objeo-pro-photos/'+x.photo_path.split('/').map(encodeURIComponent).join('/'):null}});render();indexCities()}catch(err){console.warn('Professional ads unavailable:',err.message)}finally{proLoading=false}}
-setInterval(loadProfessionalAds,60000);loadProfessionalAds();async function loadPublicReturnCount(){try{const w=legacyWindow();if(!w?.sb)return;const {data,error}=await w.sb.rpc('objeo_public_return_count');if(error)throw error;const count=Number(data);if(!Number.isSafeInteger(count)||count<=0)return;const el=document.getElementById('objeoReturnCounter');document.getElementById('objeoReturnCount').textContent=new Intl.NumberFormat('fr-FR').format(count);el.classList.add('visible')}catch(e){console.info('Compteur de restitutions non disponible',e.message)}}
+setInterval(loadProfessionalAds,60000);loadProfessionalAds();let objeoReturnCountLoading=false;
+async function loadPublicReturnCount(){
+ if(objeoReturnCountLoading)return;
+ objeoReturnCountLoading=true;
+ const el=document.getElementById('objeoReturnCounter');
+ const value=document.getElementById('objeoReturnCount');
+ try{
+  // Fetch from Supabase directly: the homepage counter must not depend on a legacy iframe.
+  const response=await fetch(PRO_URL+'rpc/objeo_public_return_count',{
+   method:'POST',
+   headers:{apikey:PRO_KEY,Authorization:'Bearer '+PRO_KEY,'Content-Type':'application/json'},
+   body:'{}',
+   cache:'no-store'
+  });
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const count=Number(await response.json());
+  if(!Number.isSafeInteger(count)||count<0)throw Error('Invalid restitution count');
+  value.textContent=new Intl.NumberFormat('fr-FR').format(count);
+  el.classList.add('visible');
+ }catch(error){
+  console.warn('Compteur de restitutions indisponible',error);
+  // Do not replace a previously verified count by an invented value.
+  if(!value.textContent)el.classList.remove('visible');
+ }finally{objeoReturnCountLoading=false}
+}
+setInterval(()=>{if(!document.hidden)loadPublicReturnCount()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadPublicReturnCount()});
+window.addEventListener('pageshow',()=>loadPublicReturnCount());
+loadPublicReturnCount();
 
 $('legacyFrame').addEventListener('load',()=>{const w=legacyWindow();if(w){try{w.$('cityOv').classList.remove('on');w.$('splash').style.display='none';if($('legacy').classList.contains('on'))applyLegacyView()}catch(e){}syncRealAds();loadPublicReturnCount();search({noScroll:true})}});
 setInterval(syncRealAds,1800);
