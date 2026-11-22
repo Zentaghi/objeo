@@ -21,7 +21,7 @@ test('Pro listing opens a direct private conversation, not a claim form',()=>{
 test('Pro conversations are tied to the item and authenticated account',()=>{
  assert.match(pro,/from\('objeo_pro_conversations'\)\.insert\(\{item_id:itemId,seeker_id:user\.id\}\)/);
  assert.match(pro,/from\('objeo_pro_messages'\)\.insert\(\{conversation_id:active\.id,sender_id:user\.id,body\}\)/);
- assert.match(pro,/const \{data:\{user/);
+ assert.match(pro,/await sb\.auth\.getUser\(\)/);
 });
 test('Pro message inbox is available in main Objeo messages',()=>{
  assert.match(messages,/from\('objeo_pro_conversations'\)/);
