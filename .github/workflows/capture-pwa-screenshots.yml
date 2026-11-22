@@ -1,0 +1,32 @@
+name: Captures publiques Objeo pour PWABuilder
+on:
+  push:
+    branches: [add-pwa-screenshots]
+    paths:
+      - .github/workflows/capture-pwa-screenshots.yml
+      - .github/scripts/capture-pwa-screenshots.cjs
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  captures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: add-pwa-screenshots
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node .github/scripts/capture-pwa-screenshots.cjs
+      - name: Publier les captures
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/screenshots
+          if ! git diff --cached --quiet; then
+            git commit -m "Ajouter quatre captures publiques pour la PWA"
+            git push
+          fi
