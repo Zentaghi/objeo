@@ -13,5 +13,12 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
+  ],
+  "id": "/",
+  "description": "Objeo rapproche les personnes qui perdent et trouvent des objets partout en France.",
+  "lang": "fr-FR",
+  "categories": [
+    "utilities",
+    "lifestyle"
   ]
 }
