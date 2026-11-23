@@ -41,6 +41,11 @@ function loadNative(slot){
 function refresh(){
  const home=document.getElementById('objeoAdHome'),detail=document.querySelector('#legacy .objeo-ad-detail');
  if(!eligible()){[home,detail].forEach(x=>{if(x){x.classList.remove('is-live');x.style.display='none';}});return;}
+ if(config.preview&&!accepted()){
+  [home,detail].forEach(x=>{if(x){x.style.display=x===detail&&!document.getElementById('legacy')?.classList.contains('on')?'none':'flex';x.classList.add('is-live');x.innerHTML='<span class="objeo-ad-label">PUBLICITÉ · APERÇU</span><span>Emplacement publicitaire (aucun script chargé)</span>';}});
+  document.querySelectorAll('#objeoWorkspace .objeo-ad-detail').forEach(x=>{x.classList.add('is-live');x.innerHTML='<span class="objeo-ad-label">PUBLICITÉ · APERÇU</span>';});
+  return;
+ }
  if(home){home.style.display='flex';scheduleBanner(home,innerWidth<700?'mobile':'desktop');}
  if(detail&&document.getElementById('legacy')?.classList.contains('on')){detail.style.display='flex';scheduleBanner(detail,'detail');}
  document.querySelectorAll('#objeoWorkspace .objeo-ad-detail').forEach(x=>scheduleBanner(x,'detail'));
