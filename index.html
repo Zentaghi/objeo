@@ -959,12 +959,12 @@ if(localStorage.getItem('objeo-push-offer'))return;
 const {data}=await auth2GetClient().auth.getUser();if(!data.user)return;
 if(document.getElementById('objeoPushOffer'))return;
 const d=document.createElement('dialog');d.id='objeoPushOffer';d.style.cssText='border:0;border-radius:20px;padding:24px;width:calc(100% - 48px);max-width:380px;box-sizing:border-box;color:#202938;box-shadow:0 10px 60px #0004';
-d.innerHTML='<h2 style="margin-top:0">Ne manquez aucune alerte</h2><p>Recevez les notifications Objeo sur cet appareil. Vous pourrez les désactiver à tout moment dans votre espace personnel.</p><button id="pushOfferYes" style="background:#ff6e14;color:white;border:0;border-radius:12px;padding:14px;width:100%;font:inherit">Activer les notifications</button><button id="pushOfferLater" style="background:white;border:0;padding:14px;width:100%;font:inherit">Plus tard</button>';
+d.innerHTML='<h2 style="margin-top:0">Ne manquez aucune alerte</h2><p>Recevez les messages, correspondances IA, alertes de restitution et les actualités et offres promotionnelles Objeo. Vous pouvez choisir vos alertes ou retirer votre accord à tout moment.</p><button id="pushOfferYes" style="background:#ff6e14;color:white;border:0;border-radius:12px;padding:14px;width:100%;font:inherit">Tout activer</button><button id="pushOfferCustom" style="background:white;border:1px solid #ddd;border-radius:12px;padding:14px;width:100%;font:inherit;margin-top:8px">Personnaliser</button><button id="pushOfferLater" style="background:white;border:0;padding:14px;width:100%;font:inherit">Plus tard</button>';
 document.body.appendChild(d);
 const dismiss=()=>{localStorage.setItem('objeo-push-offer','1');d.close();d.remove()};
-d.querySelector('#pushOfferLater').onclick=dismiss;
+d.querySelector('#pushOfferLater').onclick=dismiss;d.querySelector('#pushOfferCustom').onclick=()=>{dismiss();location.assign('/notifications.html')};
 d.addEventListener('cancel',e=>{e.preventDefault();dismiss()});
-d.querySelector('#pushOfferYes').onclick=async()=>{try{const permission=await Notification.requestPermission();dismiss();if(permission==='granted')location.assign('/notifications.html?activate=1')}catch(e){dismiss();location.assign('/notifications.html')}};
+d.querySelector('#pushOfferYes').onclick=async()=>{try{const permission=await Notification.requestPermission();dismiss();if(permission==='granted')location.assign('/notifications.html?activate=all')}catch(e){dismiss();location.assign('/notifications.html')}};
 d.showModal();
 }catch(e){console.warn('Push offer',e)}
 }
