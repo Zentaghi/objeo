@@ -10,5 +10,19 @@
         "A9:4B:E5:CC:45:7B:72:3D:C3:26:76:49:7D:07:E2:14:BD:50:4E:C5:B6:FF:89:24:98:03:F3:36:6C:61:89:A6"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "online.objeo.app",
+      "sha256_cert_fingerprints": [
+        "72:BF:4D:86:55:87:36:6F:25:55:F3:6B:0F:1E:EC:09:19:62:1E:AA:2C:C2:7E:78:68:42:41:85:F5:78:39:29",
+        "22:3A:61:42:6C:BB:F5:95:59:F1:C9:C8:9F:35:8A:75:9F:12:CD:A5:DE:62:9C:E7:51:43:21:F7:84:B2:EF:EE",
+        "EB:50:E3:CD:D4:57:80:AC:6B:71:ED:51:BD:1B:6D:B8:63:6C:91:E3:3E:B3:3A:68:D4:B4:CD:4D:E4:3A:D3:F8"
+      ]
+    }
   }
 ]
