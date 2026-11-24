@@ -950,4 +950,24 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+</script><script>
+(function(){
+async function offerPush(){
+try{
+if(!('PushManager' in window)||!('Notification' in window)||Notification.permission!=='default')return;
+if(localStorage.getItem('objeo-push-offer'))return;
+const {data}=await auth2GetClient().auth.getUser();if(!data.user)return;
+if(document.getElementById('objeoPushOffer'))return;
+const d=document.createElement('dialog');d.id='objeoPushOffer';d.style.cssText='border:0;border-radius:20px;padding:24px;width:calc(100% - 48px);max-width:380px;box-sizing:border-box;color:#202938;box-shadow:0 10px 60px #0004';
+d.innerHTML='<h2 style="margin-top:0">Ne manquez aucune alerte</h2><p>Recevez les notifications Objeo sur cet appareil. Vous pourrez les désactiver à tout moment dans votre espace personnel.</p><button id="pushOfferYes" style="background:#ff6e14;color:white;border:0;border-radius:12px;padding:14px;width:100%;font:inherit">Activer les notifications</button><button id="pushOfferLater" style="background:white;border:0;padding:14px;width:100%;font:inherit">Plus tard</button>';
+document.body.appendChild(d);
+const dismiss=()=>{localStorage.setItem('objeo-push-offer','1');d.close();d.remove()};
+d.querySelector('#pushOfferLater').onclick=dismiss;
+d.addEventListener('cancel',e=>{e.preventDefault();dismiss()});
+d.querySelector('#pushOfferYes').onclick=async()=>{try{const permission=await Notification.requestPermission();dismiss();if(permission==='granted')location.assign('/notifications.html?activate=1')}catch(e){dismiss();location.assign('/notifications.html')}};
+d.showModal();
+}catch(e){console.warn('Push offer',e)}
+}
+window.addEventListener('load',()=>{setTimeout(offerPush,2200);try{auth2GetClient().auth.onAuthStateChange(event=>{if(event==='SIGNED_IN')setTimeout(offerPush,1200)})}catch(e){}});
+})();
 </script></body></html>
