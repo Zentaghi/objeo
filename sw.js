@@ -1,7 +1,7 @@
 /* Objeo — service worker PWA
  * Network-first for documents, no caching of account messages or API responses.
  */
-const CACHE = 'objeo-pwa-v1';
+const CACHE = 'objeo-pwa-v2';
 const OFFLINE_URL = '/offline.html';
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.add(OFFLINE_URL)));
@@ -9,7 +9,7 @@ self.addEventListener('install', (event) => {
 });
 self.addEventListener('activate', (event) => {
   event.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(key => key.startsWith('objeo-pwa-') && key !== CACHE).map(key => caches.delete(key)))
+    Promise.all(keys.filter(key => key.startsWith('objeo-pwa-') && key !== CACHE).map(key => caches.delete(key))))
   );
   self.clients.claim();
 });
