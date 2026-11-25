@@ -192,10 +192,10 @@ async function objeoAppendProInbox(ctx,list,status,regularCount){
    if(msg.sender_id!==ctx.user.id&&(!readAt||Date.parse(msg.created_at)>Date.parse(readAt)))byConversation.set(msg.conversation_id,(byConversation.get(msg.conversation_id)||0)+1);
   }
  }
- const visitors=[...new Set(all.filter(c=>meta.est.get(meta.items.get(c.item_id)?.establishment_id)?.owner_id===ctx.user.id).map(c=>c.seeker_id))];
+ const visitors=[...new Set(all.filter(c=>c.seeker_id!==ctx.user.id).map(c=>c.seeker_id))];
  const names=visitors.length?await objeoLoadChatIdentities(ctx.sb,visitors,ctx.user):new Map();
  for(const c of all){
-  const item=meta.items.get(c.item_id),est=meta.est.get(item?.establishment_id),isOwner=est?.owner_id===ctx.user.id;
+  const item=meta.items.get(c.item_id),est=meta.est.get(item?.establishment_id),isOwner=c.seeker_id!==ctx.user.id;
   const display=isOwner?objeoChatIdentity(c.seeker_id,names):{name:est?.name||'Établissement Objeo',isPro:true};
   const m=last.get(c.id),count=byConversation.get(c.id)||0;
   const card=make('button',undefined,'display:block;width:100%;padding:15px;margin:10px 0;text-align:left;background:#fff8f2;border:1px solid #ffddc8;border-radius:12px;cursor:pointer;color:#27313e');
@@ -212,7 +212,7 @@ window.openUnifiedObjeoProThread=async function(ctx,c,metadata){
  stopUnifiedProThread();objeoRealtimeForgetThread();
  const meta=metadata||await objeoProMetadata(ctx.sb,[c]),item=meta.items.get(c.item_id),est=meta.est.get(item?.establishment_id);
  if(!item||!est)throw Error('Annonce indisponible.');
- const owner=est.owner_id===ctx.user.id,other=owner?c.seeker_id:est.owner_id;
+ const owner=c.seeker_id!==ctx.user.id,other=owner?c.seeker_id:est.owner_id;
  const names=owner?await objeoLoadChatIdentities(ctx.sb,[other],ctx.user):new Map();
  const identity=owner?objeoChatIdentity(other,names):{name:est.name,isPro:true};
  unifiedProActiveId=c.id;
