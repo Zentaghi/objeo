@@ -1,35 +1,28 @@
-# Objeo — application Android React Native (aperçu)
-Projet distinct du site web, sans WebView ni Trusted Web Activity. Branche android-native uniquement. La base Supabase existante est utilisée via sa clé publique; aucune migration SQL.
+# Objeo Android natif
+Branche android-native, séparée du site de production. React Native / Expo SDK 55, Supabase existant. Pas de WebView pour les écrans métier.
 
-## Exécuter sur un émulateur
-Node 20.19+ ou 22, JDK 17, Android Studio et SDK Android. Depuis la racine du dépôt:
+## Tester
+Node 22, JDK 21 complet, SDK Android 36. Les icônes et le splash ont des marges adaptées; reconstruire le binaire (un rechargement Metro ne suffit pas).
 ```sh
-git switch android-native
 cd mobile
 npm install
-npx expo install --check
-npx expo-doctor
-npm run android
+npx expo prebuild --platform android --clean
+npx expo run:android
 ```
-Le premier npm install doit générer package-lock.json; vérifier et commiter le lockfile avant de distribuer. SDK 55 choisi comme base documentée, pas comme dernière version. Les dépendances et la compilation n'ont pas encore été testées.
+Le workflow GitHub Actions **Objeo Android native - APK preview** compile un APK autonome d'essai et joint le lockfile. Vérifier le résultat avant d'installer. Cet APK utilise le package temporaire online.objeo.nativepreview; pas de publication Google Play.
 
-## APK de prévisualisation
-Après configuration d'un compte Expo/EAS, depuis mobile: npx eas-cli build --platform android --profile preview.
-Identifiant temporaire online.objeo.nativepreview pour installer en parallèle de la PWA. Ne pas importer cet APK dans la fiche Play existante.
+## Authentification
+Session chiffrée via Android Keystore, Google et retours email en PKCE. Avant test ajouter les URLs exactes dans Supabase Auth > URL Configuration > Redirect URLs :
+- objeo-native-preview://auth/callback
+- objeo-native-preview://auth/confirm
+- objeo-native-preview://auth/recovery
+- objeo://auth/callback
+- objeo://auth/confirm
+- objeo://auth/recovery
+Conserver les URLs web existantes. Tester confirmation et récupération sur l'appareil initiant le flux; les liens PKCE dépendent du vérificateur de cet appareil. La migration du stockage impose une reconnexion des comptes de l'ancien aperçu. Google utilise le navigateur système uniquement pour OAuth.
 
-## Périmètre initial
-Interface native, connexion/inscription email, sessions persistantes, vérification du type de compte, lecture des annonces ouvertes, filtres simples ville/type/texte, détails, partage, mes annonces, déconnexion. Les professionnels sont orientés vers leur espace existant, non vers l'espace particulier. Les données réelles sont lues sans modifier la base; utiliser un compte de test.
+## Production — ne pas publier avant recette
+Vérifier dans Play Console l'identifiant **exact** (online.objeo.app ou online.objeo.twa) et la version la plus haute, puis définir OBJEO_PLAY_PACKAGE, OBJEO_PLAY_VERSION_CODE (> version publiée), OBJEO_PLAY_VERSION dans l'environnement du profil production EAS, et utiliser la clé d'importation déjà associée à la fiche. OBJEO_RELEASE=1 est activé par ce profil. Aucun secret de signature ne doit être commité. Ne pas interrompre le test fermé actuel. Une version différente doit être testée avant publication.
 
-## À terminer avant tout AAB de remplacement
-- Vérifier les dépendances, lockfile, compilation et tests sur Android; renforcer stockage des sessions (Keystore).
-- Connexion Google et liens profonds, confirmation et récupération de compte.
-- Publication avec photos, GPS et recherche PostGIS complète (rayon, catégories, pagination).
-- Messagerie temps réel, revendications, restitutions, favoris, objets personnels, IA, espace pro.
-- Notifications Android FCM/Expo: nouveau stockage des jetons et envoi serveur, sans remplacer le Web Push existant.
-- Boutique physique Stripe, suppression du compte, signalements, modération, déclarations Play.
-- Contrôler icône ronde et splash valise sur un APK release.
-- Vérifier le package EXACT dans Play Console, la clé d'importation existante et le versionCode actuel. Configurer ensuite un profil release AAB avec le même package et un versionCode supérieur. Ne jamais déposer la clé de signature ou son mot de passe dans GitHub.
-- Ne pas interrompre le test fermé actuel; faire la mise à jour seulement après recette complète.
-
-## Migration native — lot 2
-Publication photo/caméra, recherche RPC PostGIS avec pagination et GPS, favoris locaux, détail et partage, messagerie et revendication, fermeture auteur, objets personnels, annuaire des partenaires et premiers écrans professionnels. Google OAuth nécessite d'ajouter la redirection exacte `objeo-native-preview://auth/callback` dans Supabase Auth et de tester sur un appareil. La recherche pro passe pour le moment par l'annuaire; pas encore fusionnée avec les annonces personnelles. La réception et la décision des demandes côté propriétaire (particuliers et professionnels) sont également codées; les compteurs non lus, les notifications FCM, IA et boutique native restent à finir. Aucun changement de base de production. L'installation npm ajoute un correctif Foojay idempotent. Utiliser un JDK complet et Node 22. Après mise à jour des dépendances, reconstruire le binaire Android. Les écrans sont codés mais non compilés/testés ici.
+## Périmètre et limites
+Écrans natifs : authentification, recherche PostGIS, photo/caméra, annonces, messagerie, favoris locaux, restitutions, objets personnels, partenaires et espace pro. Les écrans sont à valider sur appareil avec deux comptes de test; la recherche des annonces pro passe par l'annuaire. Notifications FCM et intégration serveur, IA photo, favoris synchronisés, compteurs de messages, boutique native et Stripe ne sont pas finalisés. Boutique et suppression du compte utilisent actuellement des liens web. Google nécessite l'allowlist Supabase. Faire les tests de confidentialité, autorisations, modération et sécurité avant commercialisation. Le site et la base n'ont pas été modifiés.
