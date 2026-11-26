@@ -49,3 +49,6 @@ La configuration cliente Android du projet objeo-515101 est intégrée pour onli
 
 ## Identifiants AdMob Objeo
 Application Android : ca-app-pub-4859910650106234~8616753270 ; bannière accueil : ca-app-pub-4859910650106234/5990589931. Valeurs de production intégrées (surcharge possible par environnement). OBJEO_ENABLE_ADS=1 uniquement pour une version de production validée après CMP UMP, examen AdMob et app-ads.txt. Les aperçus utilisent exclusivement les identifiants de test Google ; activer OBJEO_TEST_ADS=1 pour tester une bannière. Ne jamais cliquer sur ses propres publicités réelles.
+
+## Candidat Google Play confirmé
+Package online.objeo.app, version 2.0.0, versionCode 3. Le fichier Firebase fourni le 26/11 contient les deux applications et les mêmes paramètres clients ; la configuration production est reconstruite localement (fichier généré ignoré par Git, surcharge OBJEO_GOOGLE_SERVICES_FILE possible). Le worker Firebase serveur et son ordonnanceur ont été configurés et le jeton Google validé. Le workflow android-play-candidate.yml fabrique uniquement un AAB NON SIGNÉ, publicités et paiements réels désactivés. La clé d'importation privée n'entre jamais dans GitHub. Vérifier certificat d'importation, certificat de signature Google Play, OAuth Android et recette avant signature et import en test fermé.

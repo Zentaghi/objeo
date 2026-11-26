@@ -7,3 +7,5 @@ ios/
 *.jks
 *.keystore
 credentials.json
+
+config/firebase-production.generated.json

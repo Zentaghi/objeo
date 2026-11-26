@@ -1,0 +1,90 @@
+name: Objeo Android native - unsigned Play AAB
+on:
+  push:
+    branches: [android-native]
+    paths:
+      - '.github/workflows/android-play-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-play-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    if: github.ref == 'refs/heads/android-native'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OBJEO_RELEASE: '1'
+      OBJEO_PLAY_PACKAGE: online.objeo.app
+      OBJEO_PLAY_VERSION_CODE: '3'
+      OBJEO_PLAY_VERSION: '2.0.0'
+      OBJEO_ENABLE_ADS: '0'
+      OBJEO_ENABLE_LIVE_CHECKOUT: '0'
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify Expo versions
+        run: npx expo install --check
+      - name: Verify production configuration
+        run: |
+          npx expo config --type public --json > "$RUNNER_TEMP/objeo-config.json"
+          node -e 'const c=require(process.env.RUNNER_TEMP+"/objeo-config.json"); if(c.android.package!=="online.objeo.app"||c.android.versionCode!==3||c.version!=="2.0.0"||!c.extra.pushConfigured||c.extra.adsEnabled||c.extra.checkoutLive)throw Error("Invalid candidate configuration"); const f=require("./config/firebase-production.generated.json");if(f.client[0].client_info.android_client_info.package_name!==c.android.package)throw Error("Invalid Firebase registration"); console.log("Package, version, Firebase and disabled live services verified")'
+      - name: Bundle JavaScript
+        run: npx expo export --platform android --output-dir dist
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --clean --no-install
+      - name: Disable debug signing for Play candidate
+        run: |
+          python - <<'PY'
+          import pathlib,re
+          p=pathlib.Path("android/app/build.gradle")
+          s=p.read_text()
+          pattern=r"(?ms)(^[ \t]*release[ \t]*\{[^\n]*\n(?:(?!^[ \t]*\}).)*?^[ \t]*)signingConfig[ \t]+signingConfigs\.debug[ \t]*$"
+          s,n=re.subn(pattern,r"\g<1>signingConfig = null",s)
+          if n!=1:
+              raise SystemExit("Cannot safely locate release debug signing; refusing candidate build")
+          p.write_text(s)
+          PY
+      - name: Build unsigned Play App Bundle
+        working-directory: mobile/android
+        run: ./gradlew :app:bundleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64,armeabi-v7a,x86
+      - name: Verify unsigned bundle
+        run: |
+          python - <<'PY'
+          import pathlib,zipfile
+          paths=list(pathlib.Path("android/app/build/outputs/bundle/release").glob("*.aab"))
+          if len(paths)!=1:
+              raise SystemExit("Expected one AAB")
+          with zipfile.ZipFile(paths[0]) as z:
+              if any(x.upper().startswith("META-INF/") and x.upper().endswith((".RSA",".DSA",".EC",".SF")) for x in z.namelist()):
+                  raise SystemExit("Bundle is unexpectedly signed")
+              if "base/manifest/AndroidManifest.xml" not in z.namelist():
+                  raise SystemExit("Not a valid Android app bundle structure")
+          print("Unsigned bundle verified; upload key is NOT in CI.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Objeo-2.0.0-code3-UNSIGNED
+          path: mobile/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 7
