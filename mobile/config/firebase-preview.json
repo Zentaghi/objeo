@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "145880135367",
+    "project_id": "objeo-515101",
+    "storage_bucket": "objeo-515101.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145880135367:android:c2002c4ba0c9cb237ef0e2",
+        "android_client_info": {
+          "package_name": "online.objeo.nativepreview"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "145880135367-7ccem9ronic2vle55el38ngo3h30q09e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBqRuPquvvd6EbhQxfKpFGHBE8h3ldQZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "145880135367-7ccem9ronic2vle55el38ngo3h30q09e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

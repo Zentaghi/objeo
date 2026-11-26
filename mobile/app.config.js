@@ -3,7 +3,13 @@ module.exports=({config})=>{
   const googleWebClientId=process.env.OBJEO_GOOGLE_WEB_CLIENT_ID||'145880135367-a6pivuiv13chs4139iaq18c6rmt98ooh.apps.googleusercontent.com';
   config={...config,extra:{...config.extra,googleWebClientId}};
   const release=process.env.OBJEO_RELEASE==='1';
-  const firebaseFile=process.env.OBJEO_GOOGLE_SERVICES_FILE;
+  const firebaseFile=process.env.OBJEO_GOOGLE_SERVICES_FILE||(!release?'./config/firebase-preview.json':undefined);
+  if(firebaseFile){
+    const fs=require('fs'),path=require('path');
+    const data=JSON.parse(fs.readFileSync(path.resolve(__dirname,firebaseFile),'utf8'));
+    const expectedPackage=release?process.env.OBJEO_PLAY_PACKAGE:config.android.package;
+    if(!data.client?.some(c=>c.client_info?.android_client_info?.package_name===expectedPackage))throw Error('Le fichier Firebase ne correspond pas au package Android de ce build.');
+  }
   const appId=process.env.OBJEO_ADMOB_APP_ID, bannerId=process.env.OBJEO_ADMOB_BANNER_ID;
   const liveAds=release&&process.env.OBJEO_ENABLE_ADS==='1';
   if(liveAds&&(!/^ca-app-pub-\d+~\d+$/.test(appId||'')||!/^ca-app-pub-\d+\/\d+$/.test(bannerId||'')||appId.startsWith('ca-app-pub-3940256099942544')||bannerId.startsWith('ca-app-pub-3940256099942544')))throw Error('Identifiants AdMob de production manquants.');
