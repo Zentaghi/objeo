@@ -41,7 +41,7 @@ class ObjeoGoogleModule : Module() {
         }
       }
     }
-    AsyncFunction("clearSession") Coroutine {
+    AsyncFunction("clearSession") Coroutine { ->
       withContext(Dispatchers.Main) {
         val context = appContext.reactContext ?: return@withContext
         CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest())
