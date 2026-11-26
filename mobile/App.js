@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Image, FlatList, ScrollView, StyleShe
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
 import { NativePersonal, NativePro } from './NativeFeatures';
-import * as WebBrowser from 'expo-web-browser';
+import { authURL, handleAuthURL, googleLogin } from './native-auth';
 import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync().catch(()=>{});
 
@@ -23,13 +23,13 @@ function Field({label,...props}){return <View style={{gap:6}}><Text style={s.lab
 function ErrorText({value}){return value?<Text accessibilityRole="alert" style={s.error}>{value}</Text>:null}
 function Auth(){
   const [mode,setMode]=useState('welcome'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
-  async function google(){if(busy)return;setBusy(true);setError('');try{const redirect='objeo-native-preview://auth/callback';const {data,error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirect,skipBrowserRedirect:true}});if(error)throw error;const response=await WebBrowser.openAuthSessionAsync(data.url,redirect);if(response.type==='success'){const returned=new URL(response.url);if(returned.protocol!=='objeo-native-preview:'||returned.hostname!=='auth'||returned.pathname!=='/callback')throw Error('Redirection invalide.');const params=new URLSearchParams(returned.hash.slice(1));const access_token=params.get('access_token'),refresh_token=params.get('refresh_token');if(!access_token||!refresh_token)throw Error('Connexion Google incomplète. Vérifiez la redirection Supabase.');const r=await db.auth.setSession({access_token,refresh_token});if(r.error)throw r.error}}catch(e){setError(e.message||'Connexion Google indisponible.')}finally{setBusy(false)}}
+  async function google(){if(busy)return;setBusy(true);setError('');try{await googleLogin()}catch(e){setError(e.message||'Connexion Google indisponible.')}finally{setBusy(false)}}
   async function submit(){
     if(busy)return;setError('');setNotice('');
     if(!email.trim()||!password||(mode==='signup'&&!name.trim())){setError('Renseignez tous les champs.');return}
     setBusy(true);
     try {
-      const result=mode==='signup'?await db.auth.signUp({email:email.trim(),password,options:{data:{name:name.trim()},emailRedirectTo:'https://objeo.online/'}}):await db.auth.signInWithPassword({email:email.trim(),password});
+      const result=mode==='signup'?await db.auth.signUp({email:email.trim(),password,options:{data:{name:name.trim()},emailRedirectTo:authURL('confirm')}}):await db.auth.signInWithPassword({email:email.trim(),password});
       if(result.error)throw result.error;
       if(mode==='signup'&&!result.data.session){setNotice('Vérifiez votre e-mail, puis revenez vous connecter.');setMode('login')}
     }catch(e){setError(e.message||'Connexion impossible.')}finally{setBusy(false)}
@@ -45,73 +45,29 @@ function Auth(){
     <Button title="Retour" secondary onPress={()=>{setMode('welcome');setError('');setNotice('')}}/>
     </>}
     <Button title="Continuer avec Google" secondary disabled={busy} onPress={google}/>
-    <Button title="Mot de passe oublié" secondary disabled={busy} onPress={async()=>{if(!email.trim()){setMode('login');setError('Renseignez votre adresse e-mail.');return}try{const r=await db.auth.resetPasswordForEmail(email.trim(),{redirectTo:'https://objeo.online/'});if(r.error)throw r.error;setNotice('Consultez votre messagerie pour réinitialiser votre mot de passe.')}catch(e){setError(e.message)}}}/>
+    <Button title="Mot de passe oublié" secondary disabled={busy} onPress={async()=>{if(!email.trim()){setMode('login');setError('Renseignez votre adresse e-mail.');return}try{const r=await db.auth.resetPasswordForEmail(email.trim(),{redirectTo:authURL('recovery')});if(r.error)throw r.error;setNotice('Consultez votre messagerie pour réinitialiser votre mot de passe.')}catch(e){setError(e.message)}}}/>
     <ErrorText value={error}/>{notice?<Text style={s.muted}>{notice}</Text>:null}
-    <Text style={s.small}>Aperçu natif • Google nécessite la validation de la redirection Supabase.</Text>
+    <Text style={s.small}>Retrouvez vos objets et communiquez gratuitement avec la communauté.</Text>
     <Pressable onPress={()=>Linking.openURL('https://objeo.online/cgu.html')}><Text style={s.link}>Conditions d’utilisation</Text></Pressable>
     <Pressable onPress={()=>Linking.openURL('https://objeo.online/confidentialite.html')}><Text style={s.link}>Confidentialité</Text></Pressable>
   </ScrollView></KeyboardAvoidingView>
 }
-function Card({item,onPress}){const photo=photoUrl(item.photo_path);return <Pressable accessibilityRole="button" style={s.card} onPress={onPress}>
-  {photo?<Image source={{uri:photo}} style={s.thumb}/>:<View style={[s.thumb,s.placeholder]}><Text style={{fontSize:26}}>⌕</Text></View>}
-  <View style={{flex:1,gap:5}}><Text style={s.tag}>{kindLabel(item.kind)}{item.status==='resolved'?' · Clôturé':''}</Text><Text style={s.cardTitle}>{item.title}</Text><Text style={s.muted}>{[item.city,item.category].filter(Boolean).join(' · ')}</Text></View>
-</Pressable>}
-function Detail({ad,back}){const photo=photoUrl(ad.photo_path);return <ScrollView contentContainerStyle={s.page}>
-  <Pressable onPress={back}><Text style={s.link}>‹ Retour</Text></Pressable>
-  {photo&&<Image source={{uri:photo}} style={s.heroImage} resizeMode="contain"/>}
-  <Text style={s.tag}>{kindLabel(ad.kind)}</Text><Text style={s.h1}>{ad.title}</Text><Text style={s.muted}>{ad.city} · {ad.category||'Autre'}</Text>
-  {ad.happened_on&&<Text style={s.muted}>Date : {ad.happened_on}</Text>}
-  <Text style={s.body}>{ad.description||'Aucune description.'}</Text>
-  <Button title="Partager l’annonce" secondary onPress={()=>Share.share({message:ad.title+' — https://objeo.online/?annonce='+encodeURIComponent(ad.id)})}/>
-</ScrollView>}
-function Personal({user}){
-  const [tab,setTab]=useState('home'),[rows,setRows]=useState([]),[mine,setMine]=useState([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[q,setQ]=useState(''),[city,setCity]=useState(''),[kind,setKind]=useState('all'),[ad,setAd]=useState(null);
-  const seq=useRef(0);
-  const load=useCallback(async()=>{
-    const id=++seq.current;setLoading(true);setError('');
-    try{
-      const own=tab==='mine';
-      let request=db.from('ads').select(columns).order('created_at',{ascending:false}).limit(100);
-      request=own?request.eq('user_id',user.id):request.eq('status','open');
-      if(!own&&kind!=='all')request=request.eq('kind',kind);
-      if(!own&&city.trim())request=request.ilike('city','%'+city.trim().replace(/[%_]/g,'')+'%');
-      const {data,error:e}=await request;if(e)throw e;
-      if(seq.current===id)(own?setMine:setRows)(data||[]);
-    }catch(e){if(seq.current===id)setError(e.message||'Chargement impossible.')}
-    finally{if(seq.current===id)setLoading(false)}
-  },[user.id,tab,kind,city]);
-  useEffect(()=>{if(tab==='home'||tab==='mine')load();return()=>{seq.current++}},[load,tab]);
-  useEffect(()=>{const h=BackHandler.addEventListener('hardwareBackPress',()=>{if(ad){setAd(null);return true}if(tab!=='home'){setTab('home');return true}return false});return()=>h.remove()},[ad,tab]);
-  if(ad)return <Detail ad={ad} back={()=>setAd(null)}/>;
-  const filtered=rows.filter(a=>!norm(q)||norm([a.title,a.description,a.category].join(' ')).includes(norm(q)));
-  const list=tab==='mine'?mine:filtered;
-  return <View style={s.full}><View style={s.header}><Brand/></View>
-    {tab==='account'?<ScrollView contentContainerStyle={s.page}><Text style={s.h1}>Mon compte</Text><Text style={s.body}>{user.email}</Text><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/><Text style={s.small}>Cette version de prévisualisation ne remplace pas encore le site. Les annonces, messages, objets personnels et paramètres complets restent disponibles sur Objeo.</Text></ScrollView>:<>
-      <View style={s.pageTop}><Text style={s.h1}>{tab==='mine'?'Mes annonces':'Retrouvez ce qui compte'}</Text>
-        {tab==='home'&&<><TextInput style={s.input} value={q} onChangeText={setQ} placeholder="Quel objet recherchez-vous ?" placeholderTextColor="#737b85"/>
-        <TextInput style={s.input} value={city} onChangeText={setCity} placeholder="Ville" placeholderTextColor="#737b85"/>
-        <View style={s.chips}>{[['all','Tout'],['lost','Perdus'],['found','Trouvés']].map(([value,label])=><Pressable key={value} onPress={()=>setKind(value)} style={[s.chip,kind===value&&s.activeChip]}><Text style={{color:kind===value?'white':ink,fontWeight:'600'}}>{label}</Text></Pressable>)}</View>
-        <Text style={s.small}>Recherche dans les 100 annonces les plus récentes correspondant aux filtres.</Text></>}
-        <ErrorText value={error}/>
-      </View>
-      <FlatList data={list} keyExtractor={a=>String(a.id)} refreshing={loading} onRefresh={load} contentContainerStyle={s.list} renderItem={({item})=><Card item={item} onPress={()=>setAd(item)}/>} ListEmptyComponent={loading?<ActivityIndicator color={orange}/>:<Text style={s.muted}>Aucune annonce à afficher.</Text>}/>
-    </>}
-    <View style={s.nav}>{[['home','⌕','Rechercher'],['mine','▤','Mes annonces'],['account','○','Compte']].map(([value,icon,label])=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===value}} key={value} style={s.navItem} onPress={()=>setTab(value)}><Text style={[s.navIcon,tab===value&&{color:orange}]}>{icon}</Text><Text style={{fontSize:11,color:tab===value?orange:ink}}>{label}</Text></Pressable>)}</View>
-  </View>
-}
+function ResetPassword({done}){const [password,P]=useState(''),[confirmation,C]=useState(''),[busy,B]=useState(false),[error,E]=useState('');async function save(){if(busy)return;if(password.length<8||password!==confirmation){E('Choisissez au moins 8 caractères et confirmez le mot de passe.');return}B(true);E('');try{const r=await db.auth.updateUser({password});if(r.error)throw r.error;done()}catch(e){E(e.message)}finally{B(false)}}return <ScrollView contentContainerStyle={s.auth}><Brand/><Text style={s.h1}>Nouveau mot de passe</Text><Field label="Mot de passe" value={password} onChangeText={P} secureTextEntry/><Field label="Confirmer" value={confirmation} onChangeText={C} secureTextEntry/><ErrorText value={error}/><Button title="Enregistrer" onPress={save} disabled={busy}/><Button title="Annuler et se déconnecter" secondary onPress={async()=>{await db.auth.signOut();done()}}/></ScrollView>}
 function Root(){
-  const [session,setSession]=useState(undefined),[role,setRole]=useState(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
-  useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted)setSession(next)});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
+  const [session,setSession]=useState(undefined),[role,setRole]=useState(null),[error,setError]=useState(''),[retry,setRetry]=useState(0),[recovery,setRecovery]=useState(false),[linkError,setLinkError]=useState('');
+  useEffect(()=>{let active=true;const handle=url=>handleAuthURL(url).then(result=>{if(active&&result==='recovery')setRecovery(true)}).catch(e=>{if(active)setLinkError(e.message)});Linking.getInitialURL().then(handle).catch(()=>{});const listener=Linking.addEventListener('url',e=>handle(e.url));return()=>{active=false;listener.remove()}},[]);
+  useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted){setSession(next);if(_event==='PASSWORD_RECOVERY')setRecovery(true)}});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
   useEffect(()=>{if(session!==undefined)SplashScreen.hideAsync().catch(()=>{})},[session]);
   const uid=session?.user?.id;
   useEffect(()=>{let active=true;setRole(null);setError('');if(uid){db.from('objeo_establishments').select('id').eq('owner_id',uid).limit(1).then(({data,error:e})=>{if(!active)return;if(e){setError('Impossible de vérifier le type de compte.');setRole('error')}else setRole(data?.length?'pro':'personal')}).catch(()=>{if(active){setRole('error');setError('Connexion indisponible.')}})}return()=>{active=false}},[uid,retry]);
   let content;
-  if(session===undefined||(session&&!role))content=<View style={s.center}><Brand/><ActivityIndicator color={orange}/></View>;
+  if(session===undefined||(session&&!role&&!recovery))content=<View style={s.center}><Brand/><ActivityIndicator color={orange}/></View>;
   else if(!session)content=<Auth/>;
+  else if(recovery)content=<ResetPassword done={()=>setRecovery(false)}/>;
   else if(role==='error')content=<View style={s.center}><ErrorText value={error}/><Button title="Réessayer" onPress={()=>setRetry(x=>x+1)}/><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/></View>;
   else if(role==='pro')content=<NativePro key={uid} user={session.user} Brand={Brand}/>;
   else content=<NativePersonal key={uid} user={session.user} Brand={Brand}/>;
-  return <SafeAreaView style={s.full}><StatusBar barStyle="dark-content"/>{content}</SafeAreaView>
+  return <SafeAreaView style={s.full}><StatusBar barStyle="dark-content"/>{linkError?<View style={{padding:12}}><ErrorText value={linkError}/><Button title="Fermer" secondary onPress={()=>setLinkError('')}/></View>:null}{content}</SafeAreaView>
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
 const s=StyleSheet.create({

@@ -22,7 +22,10 @@
     "expo-image-picker": "55.0.24",
     "expo-location": "55.1.15",
     "expo-web-browser": "55.0.20",
-    "expo-splash-screen": "55.0.25"
+    "expo-splash-screen": "55.0.25",
+    "expo-secure-store": "55.0.18",
+    "expo-constants": "55.0.17",
+    "expo-crypto": "55.0.19"
   },
   "engines": {
     "node": ">=20.19.4"
