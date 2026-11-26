@@ -1,0 +1,8 @@
+plugins { id 'com.android.library'; id 'expo-module-gradle-plugin' }
+group = 'online.objeo.vision'
+version = '1.0.0'
+android {
+ namespace 'online.objeo.vision'
+ defaultConfig { versionCode 1; versionName '1.0.0' }
+}
+dependencies { implementation 'com.google.mlkit:image-labeling:17.0.9' }

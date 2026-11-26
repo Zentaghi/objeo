@@ -32,3 +32,6 @@ Le bouton Google appelle un module Kotlin local utilisant Android Credential Man
 
 ## Espace professionnel étendu
 Création du compte établissement, coordonnées publiques, QR généré localement, impression, équipe via RPC propriétaire et bascule entre établissements autorisés. Les droits restent définis par RLS; vérifier sur comptes distincts avant publication. Favoris et demandes de suppression utilisent le SQL additionnel mobile/backend/account-and-favorites.sql (appliqué en production, RLS contrôlée). La suppression effective reste manuelle.
+
+## Analyse photo native
+ML Kit intégré (modèle embarqué 17.0.9), comparaison d'étiquettes, couleurs et empreintes d'image, sans envoi de la photo personnelle au serveur. Résultats indicatifs parmi 16 photos d'annonces trouvées dans 50 km; ne garantit pas la reconnaissance de l'objet. Les correspondances de la surveillance d'objets personnels utilisent aussi le moteur Supabase existant et ses scores visuels.
