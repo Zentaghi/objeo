@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, Image, FlatList, ScrollView, StyleShe
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
 import { NativePersonal, NativePro } from './NativeFeatures';
+import { LegalModal } from './LegalModal';
 import { authURL, handleAuthURL, googleLogin, clearGoogleSession } from './native-auth';
 import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync().catch(()=>{});
@@ -22,6 +23,7 @@ function Brand(){return <View style={s.brand}><Image source={logo} style={{width
 function Field({label,...props}){return <View style={{gap:6}}><Text style={s.label}>{label}</Text><TextInput placeholderTextColor="#737b85" style={s.input} {...props}/></View>}
 function ErrorText({value}){return value?<Text accessibilityRole="alert" style={s.error}>{value}</Text>:null}
 function Auth(){
+  const [legal,setLegal]=useState(null);
   const [mode,setMode]=useState('welcome'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   async function google(){if(busy)return;setBusy(true);setError('');try{await googleLogin()}catch(e){setError(e.message||'Connexion Google indisponible.')}finally{setBusy(false)}}
   async function submit(){
@@ -49,9 +51,9 @@ function Auth(){
     <Button title="Mot de passe oublié" secondary disabled={busy} onPress={async()=>{if(!email.trim()){setMode('login');setError('Renseignez votre adresse e-mail.');return}try{const r=await db.auth.resetPasswordForEmail(email.trim(),{redirectTo:authURL('recovery')});if(r.error)throw r.error;setNotice('Consultez votre messagerie pour réinitialiser votre mot de passe.')}catch(e){setError(e.message)}}}/>
     <ErrorText value={error}/>{notice?<Text style={s.muted}>{notice}</Text>:null}
     <Text style={s.small}>Retrouvez vos objets et communiquez gratuitement avec la communauté.</Text>
-    <Pressable onPress={()=>Linking.openURL('https://objeo.online/cgu.html')}><Text style={s.link}>Conditions d’utilisation</Text></Pressable>
-    <Pressable onPress={()=>Linking.openURL('https://objeo.online/confidentialite.html')}><Text style={s.link}>Confidentialité</Text></Pressable>
-  </ScrollView></KeyboardAvoidingView>
+    <Pressable onPress={()=>setLegal('cgu')}><Text style={s.link}>Conditions d’utilisation</Text></Pressable>
+    <Pressable onPress={()=>setLegal('privacy')}><Text style={s.link}>Confidentialité</Text></Pressable>
+  <LegalModal type={legal} onClose={()=>setLegal(null)}/></ScrollView></KeyboardAvoidingView>
 }
 function ResetPassword({done}){const [password,P]=useState(''),[confirmation,C]=useState(''),[busy,B]=useState(false),[error,E]=useState('');async function save(){if(busy)return;if(password.length<8||password!==confirmation){E('Choisissez au moins 8 caractères et confirmez le mot de passe.');return}B(true);E('');try{const r=await db.auth.updateUser({password});if(r.error)throw r.error;done()}catch(e){E(e.message)}finally{B(false)}}return <ScrollView contentContainerStyle={s.auth}><Brand/><Text style={s.h1}>Nouveau mot de passe</Text><Field label="Mot de passe" value={password} onChangeText={P} secureTextEntry/><Field label="Confirmer" value={confirmation} onChangeText={C} secureTextEntry/><ErrorText value={error}/><Button title="Enregistrer" onPress={save} disabled={busy}/><Button title="Annuler et se déconnecter" secondary onPress={async()=>{await db.auth.signOut();done()}}/></ScrollView>}
 function Root(){

@@ -1,0 +1,382 @@
+{
+  "cgu": [
+    {
+      "kind": "h1",
+      "text": "Conditions générales d'utilisation"
+    },
+    {
+      "kind": "p",
+      "text": "Version provisoire destinée à être revue avant mise en production commerciale."
+    },
+    {
+      "kind": "h2",
+      "text": "1. Objet"
+    },
+    {
+      "kind": "p",
+      "text": "Objeo permet aux utilisateurs de signaler des objets perdus ou trouvés et de contacter d'autres utilisateurs afin de faciliter leur restitution."
+    },
+    {
+      "kind": "h2",
+      "text": "2. Comptes et accès"
+    },
+    {
+      "kind": "p",
+      "text": "Chaque utilisateur s'engage à fournir des informations exactes, à protéger ses accès et à ne pas usurper l'identité d'un tiers."
+    },
+    {
+      "kind": "h2",
+      "text": "3. Publications"
+    },
+    {
+      "kind": "p",
+      "text": "Les annonces doivent être sincères, licites et directement liées à des objets perdus ou trouvés. Il est interdit de publier des informations sensibles ou des coordonnées privées de tiers sans autorisation, des contenus frauduleux ou des annonces portant atteinte aux droits d'autrui."
+    },
+    {
+      "kind": "h2",
+      "text": "4. Restitution et sécurité"
+    },
+    {
+      "kind": "p",
+      "text": "Les utilisateurs doivent vérifier les éléments permettant d'établir la propriété d'un objet avant toute remise. Objeo ne garantit ni l'authenticité des annonces ni la récupération des biens. Les obligations légales de remise aux autorités compétentes demeurent applicables."
+    },
+    {
+      "kind": "h2",
+      "text": "5. Modération"
+    },
+    {
+      "kind": "p",
+      "text": "Objeo peut examiner, masquer ou retirer les contenus contraires aux présentes règles ou à la loi. Les modalités de signalement et de contestation des décisions doivent être précisées dans le service."
+    },
+    {
+      "kind": "h2",
+      "text": "6. Disponibilité"
+    },
+    {
+      "kind": "p",
+      "text": "Le service peut connaître des interruptions de maintenance ou des incidents techniques. Les responsabilités restent soumises aux dispositions impératives du droit applicable."
+    },
+    {
+      "kind": "h2",
+      "text": "7. Contact"
+    },
+    {
+      "kind": "p",
+      "text": "Pour toute question ou signalement : objeocontact@gmail.com."
+    }
+  ],
+  "privacy": [
+    {
+      "kind": "h1",
+      "text": "Politique de confidentialité"
+    },
+    {
+      "kind": "p",
+      "text": "Informations à compléter avant validation juridique : le numéro SIREN/SIRET de l'éditeur et les coordonnées légales de l'hébergeur doivent être vérifiés. Cette page est une version provisoire."
+    },
+    {
+      "kind": "p",
+      "text": "Cette politique décrit les principaux traitements de données liés à Objeo. Elle doit être adaptée à la configuration réelle des services, aux durées de conservation et aux sous-traitants effectivement utilisés."
+    },
+    {
+      "kind": "h2",
+      "text": "Responsable du traitement"
+    },
+    {
+      "kind": "p",
+      "text": "Ghiles Zentar, entrepreneur individuel — Solution Informatique. Contact : objeocontact@gmail.com."
+    },
+    {
+      "kind": "h2",
+      "text": "Données traitées"
+    },
+    {
+      "kind": "p",
+      "text": "Selon l'utilisation du site : adresse e-mail, identifiants de compte, informations de profil, annonces, photographies, lieux approximatifs, conversations, données techniques et journaux nécessaires au fonctionnement et à la sécurité."
+    },
+    {
+      "kind": "h2",
+      "text": "Finalités et bases légales"
+    },
+    {
+      "kind": "p",
+      "text": "Gestion des comptes, publication des annonces, messagerie et alertes : exécution du service demandé ; sécurité et prévention des abus : intérêt légitime selon les circonstances ; obligations réglementaires : obligation légale ; publicité non essentielle : consentement lorsque requis."
+    },
+    {
+      "kind": "h2",
+      "text": "Prestataires"
+    },
+    {
+      "kind": "p",
+      "text": "Objeo utilise notamment Supabase pour des fonctions applicatives et Resend pour l'envoi d'e-mails. GitHub Pages assure l'hébergement du site statique. Les éventuels transferts hors EEE, garanties et sous-traitants doivent être documentés selon les contrats en vigueur."
+    },
+    {
+      "kind": "h2",
+      "text": "Objeo Protect — boutique et paiements"
+    },
+    {
+      "kind": "p",
+      "text": "Pour les commandes Protect, Objeo traite la référence de commande, les articles, les montants, les identifiants de paiement, le statut et, lors des ventes réelles, le nom, l’adresse de livraison, l’e-mail et le numéro de suivi. Ces données servent à l’exécution du contrat, au service après-vente, à la prévention des fraudes et aux obligations comptables. Stripe Checkout traite les données de paiement ; Objeo ne reçoit pas le numéro complet de la carte bancaire. Les coordonnées nécessaires à la livraison pourront être transmises au transporteur chargé de la commande. Les coordonnées du client ne sont pas affichées au public lors du scan d’un QR."
+    },
+    {
+      "kind": "p",
+      "text": "Les ventes réelles demeurent fermées ; les durées de conservation propres aux commandes, les modalités de sous-traitance et les informations relatives aux transferts internationaux doivent être confirmées avant lancement. Pour les informations Stripe : politique de confidentialité Stripe."
+    },
+    {
+      "kind": "h2",
+      "text": "Destinataires et visibilité"
+    },
+    {
+      "kind": "p",
+      "text": "Les informations présentes dans une annonce publique (description, photographie et localisation approximative) peuvent être consultées par les visiteurs. Évitez d'y publier une adresse personnelle, un numéro de téléphone ou des documents contenant des données sensibles. Les messages privés sont destinés à leurs participants et aux personnes habilitées lorsque cela est nécessaire à la sécurité ou au respect de la loi."
+    },
+    {
+      "kind": "h2",
+      "text": "Localisation"
+    },
+    {
+      "kind": "p",
+      "text": "Les recherches géographiques peuvent utiliser une ville ou des coordonnées approximatives afin de proposer des annonces proches. Ne publiez pas de localisation précise d'un domicile ou d'un objet sensible."
+    },
+    {
+      "kind": "h2",
+      "text": "Conservation"
+    },
+    {
+      "kind": "p",
+      "text": "Les durées précises de conservation des comptes, annonces, messages, fichiers et journaux restent à définir et à publier. Les données ne doivent pas être conservées indéfiniment sans justification."
+    },
+    {
+      "kind": "h2",
+      "text": "Sécurité et sous-traitance"
+    },
+    {
+      "kind": "p",
+      "text": "Des mesures d'authentification et de contrôle d'accès sont utilisées pour limiter l'accès aux informations. Aucune transmission sur Internet n'est totalement exempte de risque. Les prestataires techniques n'interviennent que pour les services nécessaires à l'exploitation du site, selon leurs conditions et accords applicables."
+    },
+    {
+      "kind": "h2",
+      "text": "Vos droits"
+    },
+    {
+      "kind": "p",
+      "text": "Vous pouvez demander l'accès, la rectification, l'effacement, la limitation ou l'opposition lorsque ces droits s'appliquent, et exercer votre droit à la portabilité dans les cas prévus. Écrivez à objeocontact@gmail.com. Vous pouvez aussi saisir la CNIL."
+    },
+    {
+      "kind": "h2",
+      "text": "Mineurs"
+    },
+    {
+      "kind": "p",
+      "text": "Les personnes mineures doivent utiliser le service conformément aux règles applicables à leur âge et, lorsque nécessaire, avec l'autorisation de leur représentant légal."
+    },
+    {
+      "kind": "h2",
+      "text": "Publicité"
+    },
+    {
+      "kind": "p",
+      "text": "Si des publicités personnalisées sont activées, des informations complémentaires et un mécanisme de recueil/retrait du consentement seront mis en place avant leur diffusion."
+    }
+  ],
+  "cgv": [
+    {
+      "kind": "p",
+      "text": "OBJEO PROTECT · Version du 25 novembre 2026"
+    },
+    {
+      "kind": "h1",
+      "text": "Conditions générales de vente"
+    },
+    {
+      "kind": "h2",
+      "text": "1. Vendeur et champ d'application"
+    },
+    {
+      "kind": "p",
+      "text": "Ces conditions concernent la vente à distance aux consommateurs d'accessoires physiques Objeo Protect par Ghiles Zentar, entrepreneur individuel, nom commercial Solutions Informatique Ghiles ZENTAR. SIREN : 103 443 685 ; SIRET : 103 443 685 00013. Adresse professionnelle : 23 rue du Renard, 76000 Rouen, France. Adresse de retour : 23 rue du Renard, 76000 Rouen, France. Contact : objeocontact@gmail.com. Téléphone : 06 51 94 49 72."
+    },
+    {
+      "kind": "h2",
+      "text": "2. Produits et usage"
+    },
+    {
+      "kind": "p",
+      "text": "Objeo Stick est un autocollant QR, Objeo Badge un porte-clés QR et Objeo Travel une étiquette de bagage QR. Le Pack Essential comprend un badge et cinq autocollants. Les caractéristiques des articles et leur présentation figurent sur les fiches produit. Les visuels peuvent illustrer le produit ; aucune résistance à l’eau ou aux chocs particulière n’est garantie en l’absence d’indication expresse."
+    },
+    {
+      "kind": "p",
+      "text": "Les QR permettent à un trouveur de contacter le propriétaire via Objeo. Ils ne géolocalisent pas l'objet, ne constituent ni une assurance ni une garantie de récupération. Un compte et une connexion à Internet sont nécessaires pour les fonctions en ligne. Le code d'activation est privé. Aucun abonnement n'est prévu pour la protection de base. Ces précisions ne réduisent pas les droits et garanties légaux du consommateur."
+    },
+    {
+      "kind": "h2",
+      "text": "3. Prix et frais"
+    },
+    {
+      "kind": "p",
+      "text": "Les prix sont exprimés en euros, toutes taxes applicables comprises. Les frais et le total dû seront indiqués avant engagement."
+    },
+    {
+      "kind": "tr",
+      "text": "Référence — Prix"
+    },
+    {
+      "kind": "tr",
+      "text": "Stick Standard — 1,49 €"
+    },
+    {
+      "kind": "tr",
+      "text": "Badge — 4,99 €"
+    },
+    {
+      "kind": "tr",
+      "text": "Travel — 6,99 €"
+    },
+    {
+      "kind": "tr",
+      "text": "Pack Essential — 8,99 €"
+    },
+    {
+      "kind": "p",
+      "text": "Frais de livraison : 2,99 € pour les autocollants seuls, 3,99 € pour les commandes contenant un autre accessoire, gratuits dès 25 € de marchandises. Le montant exact est affiché avant paiement."
+    },
+    {
+      "kind": "h2",
+      "text": "4. Commande et paiement"
+    },
+    {
+      "kind": "p",
+      "text": "Le client sélectionne les articles, vérifie et corrige son panier, les frais, l'adresse et le prix total, puis accepte les CGV définitives avant de confirmer une commande avec obligation de paiement. Le paiement est traité par Stripe Checkout. Une commande payée n'est enregistrée qu'après confirmation vérifiée du paiement. Aucun numéro complet de carte bancaire n'est stocké par Objeo."
+    },
+    {
+      "kind": "p",
+      "text": "Une confirmation reprenant le contrat, les articles, le prix et les informations de rétractation est transmise par courriel et disponible dans l’espace client. Le suivi sera accessible depuis Mes commandes. Le paiement en production est soumis à la disponibilité des articles et à l’ouverture des ventes."
+    },
+    {
+      "kind": "h2",
+      "text": "5. Livraison"
+    },
+    {
+      "kind": "p",
+      "text": "La livraison est proposée aux adresses en France acceptées par le formulaire de paiement. Livraison sous 10 jours ouvrés après paiement. Le risque de perte ou d'endommagement est transféré au consommateur lors de la prise de possession physique, sauf disposition légale particulière. En cas de retard, le consommateur dispose des recours prévus par le Code de la consommation, notamment ses articles L.216-6 et suivants."
+    },
+    {
+      "kind": "h2",
+      "text": "6. Droit de rétractation"
+    },
+    {
+      "kind": "p",
+      "text": "Le consommateur peut se rétracter sans motif dans les 14 jours suivant la réception du bien (ou du dernier bien pour une commande livrée séparément). Il peut notifier sa décision par une déclaration non équivoque, notamment par e-mail ou au moyen du formulaire ci-dessous. Pour exercer ce droit en ligne, rendez-vous dans Mes commandes, choisissez la commande concernée, puis « Se rétracter » et « Confirmer la rétractation ». Vous recevrez un accusé de réception comportant le contenu, la date et l’heure de votre demande sur support durable. Les QR attribués ne sont pas considérés, à eux seuls, comme excluant la rétractation."
+    },
+    {
+      "kind": "p",
+      "text": "Le consommateur renvoie les biens dans les 14 jours suivant sa notification. Les frais directs de retour pour simple rétractation sont à sa charge. Le vendeur rembourse les sommes dues, y compris les frais de livraison standard applicables, dans les 14 jours suivant la notification ; il peut différer le remboursement jusqu'à réception des biens ou d'une preuve de leur expédition, selon le premier événement. Le remboursement utilise le même moyen de paiement sauf accord exprès contraire sans frais. Une dépréciation n'est imputable que dans les conditions prévues par la loi. Les retours liés à un défaut de conformité sont distincts et ne sont pas soumis à ces frais."
+    },
+    {
+      "kind": "h2",
+      "text": "7. Formulaire type de rétractation"
+    },
+    {
+      "kind": "p",
+      "text": "À adresser au vendeur par e-mail ou courrier (23 rue du Renard, 76000 Rouen, France)."
+    },
+    {
+      "kind": "blockquote",
+      "text": "Je vous notifie par la présente ma rétractation du contrat portant sur la vente du ou des biens suivants :\nRéférence de commande :\nCommandé le / reçu le :\nNom du consommateur :\nAdresse du consommateur :\nDate :\nSignature (uniquement en cas de notification sur papier)."
+    },
+    {
+      "kind": "h2",
+      "text": "8. Garanties légales et service après-vente"
+    },
+    {
+      "kind": "p",
+      "text": "Le vendeur répond de la garantie légale de conformité selon les articles L.217-3 et suivants du Code de la consommation, notamment pendant deux ans à compter de la délivrance pour les biens neufs, et de la garantie des vices cachés selon les articles 1641 et suivants du Code civil. Le consommateur peut solliciter la mise en conformité sans frais et, dans les cas légaux, une réduction de prix ou la résolution du contrat. Pour les vices cachés, l'action doit être exercée dans les deux ans de la découverte du vice. Les modalités légales de mise en œuvre des garanties sont rappelées dans l’encadré ci-après. Contact SAV : adresse e-mail du vendeur."
+    },
+    {
+      "kind": "p",
+      "text": "Le consommateur dispose d'un délai de deux ans à compter de la délivrance du bien pour obtenir la mise en œuvre de la garantie légale de conformité en cas d'apparition d'un défaut de conformité. Durant ce délai, il n'est tenu d'établir que l'existence du défaut de conformité et non sa date d'apparition. Lorsque le contrat de vente du bien prévoit la fourniture d'un contenu numérique ou d'un service numérique de manière continue pendant une durée supérieure à deux ans, la garantie légale est applicable à ce contenu numérique ou ce service numérique tout au long de la période de fourniture prévue. Durant ce délai, le consommateur n'est tenu d'établir que l'existence du défaut de conformité affectant le contenu numérique ou le service numérique et non sa date d'apparition."
+    },
+    {
+      "kind": "p",
+      "text": "La garantie légale de conformité emporte obligation pour le professionnel, le cas échéant, de fournir toutes les mises à jour nécessaires au maintien de la conformité du bien. La garantie légale de conformité donne au consommateur droit à la réparation ou au remplacement du bien dans un délai de trente jours suivant sa demande, sans frais et sans inconvénient majeur pour lui. Si le bien est réparé dans le cadre de la garantie légale de conformité, le consommateur bénéficie d'une extension de six mois de la garantie initiale. Si le consommateur demande la réparation du bien, mais que le vendeur impose le remplacement, la garantie légale de conformité est renouvelée pour une période de deux ans à compter de la date de remplacement du bien."
+    },
+    {
+      "kind": "p",
+      "text": "Le consommateur peut obtenir une réduction du prix d'achat en conservant le bien ou mettre fin au contrat en se faisant rembourser intégralement contre restitution du bien, si le professionnel refuse de réparer ou de remplacer le bien, si la réparation ou le remplacement intervient après trente jours, si elle occasionne un inconvénient majeur, ou si la non-conformité persiste malgré une tentative de mise en conformité. Il bénéficie aussi d'une réduction du prix ou de la résolution du contrat lorsque le défaut est suffisamment grave pour le justifier immédiatement. Il n'a pas droit à la résolution si le défaut est mineur. Toute période d'immobilisation du bien en vue de sa réparation ou de son remplacement suspend la garantie qui restait à courir jusqu'à la délivrance du bien remis en état. Ces droits résultent des articles L.217-1 à L.217-32 du Code de la consommation."
+    },
+    {
+      "kind": "p",
+      "text": "Le consommateur bénéficie également de la garantie légale des vices cachés en application des articles 1641 à 1649 du Code civil, pendant une durée de deux ans à compter de la découverte du défaut. Cette garantie donne droit à une réduction de prix si le bien est conservé ou à un remboursement intégral contre restitution du bien."
+    },
+    {
+      "kind": "p",
+      "text": "Modèle réglementaire : annexe à l’article D.211-2."
+    },
+    {
+      "kind": "h2",
+      "text": "9. Données personnelles"
+    },
+    {
+      "kind": "p",
+      "text": "Les coordonnées et l'adresse de livraison sont nécessaires à la commande et à son exécution ; Stripe traite le paiement. Les données de commande ne sont pas destinées à être publiées avec le QR. Consultez la politique de confidentialité pour les finalités, destinataires et droits."
+    },
+    {
+      "kind": "h2",
+      "text": "10. Réclamations, médiation et droit applicable"
+    },
+    {
+      "kind": "p",
+      "text": "En cas de difficulté, contactez le vendeur. Après une réclamation écrite préalable, le consommateur peut recourir gratuitement au médiateur de la consommation dont relève le vendeur. Le médiateur désigné est le Centre de la médiation de la consommation de conciliateurs de justice (CM2C), 49 rue de Ponthieu, 75008 Paris. Saisine en ligne : www.cm2c.net ; par e-mail : declarer-un-litige@cm2c.net. Téléphone : 01 89 47 00 14. Le recours au juge compétent reste possible. Le droit français s'applique sous réserve des protections impératives du consommateur."
+    },
+    {
+      "kind": "h2",
+      "text": "Références légales"
+    },
+    {
+      "kind": "p",
+      "text": "Règles du commerce en ligne · Conditions générales de vente · Médiation de la consommation"
+    }
+  ],
+  "delete": [
+    {
+      "kind": "h1",
+      "text": "Supprimer mon compte Objeo"
+    },
+    {
+      "kind": "p",
+      "text": "Objeo — Solution Informatique. Vous pouvez demander la suppression de votre compte personnel ou professionnel et des données associées, même sans accès à l’application."
+    },
+    {
+      "kind": "h2",
+      "text": "Envoyer une demande de suppression"
+    },
+    {
+      "kind": "p",
+      "text": "Écrivez depuis l’adresse associée à votre compte à Ghiles.zentar@gmail.com. Si vous n’y avez plus accès, indiquez l’adresse du compte concerné. Nous vérifierons votre identité avant toute suppression. Ne transmettez jamais votre mot de passe."
+    },
+    {
+      "kind": "p",
+      "text": "Cette action ouvre votre messagerie : vous devez envoyer le message pour soumettre la demande."
+    },
+    {
+      "kind": "h2",
+      "text": "Données concernées"
+    },
+    {
+      "kind": "p",
+      "text": "La demande porte sur le compte, le profil, les annonces, les photos, les objets personnels enregistrés, les favoris, les alertes et les données personnelles associées aux conversations et au compte professionnel, le cas échéant."
+    },
+    {
+      "kind": "h2",
+      "text": "Traitement et conservation"
+    },
+    {
+      "kind": "p",
+      "text": "La suppression est traitée manuellement après vérification. Une réponse est apportée dans un délai d’un mois, sous réserve des prolongations prévues par le RGPD. Les données dont la conservation est légalement nécessaire, ou indispensable à la défense de droits, peuvent être conservées pendant la durée justifiée par ce motif. La réponse précisera les éventuelles exceptions et leur durée. Les durées techniques de purge des sauvegardes restent à préciser."
+    },
+    {
+      "kind": "p",
+      "text": "La suppression est définitive. Consultez notre politique de confidentialité."
+    }
+  ]
+}
