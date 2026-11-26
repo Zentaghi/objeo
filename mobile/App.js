@@ -4,10 +4,12 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
 import { NativePersonal, NativePro } from './NativeFeatures';
 import * as WebBrowser from 'expo-web-browser';
+import * as SplashScreen from 'expo-splash-screen';
+SplashScreen.preventAutoHideAsync().catch(()=>{});
 
 const orange='#ff6e14', ink='#222b37';
 const columns='id,kind,title,category,city,happened_on,description,photo_path,status,created_at';
-const logo=require('./assets/splash.png');
+const logo=require('./assets/brand.png');
 const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const kindLabel=k=>k==='lost'?'Perdu':'Trouvé';
 function Button({title,onPress,secondary=false,disabled=false}) {
@@ -16,7 +18,7 @@ function Button({title,onPress,secondary=false,disabled=false}) {
     <Text style={[s.buttonText,secondary&&{color:ink}]}>{title}</Text>
   </Pressable>;
 }
-function Brand(){return <View style={s.brand}><Image source={logo} style={{width:50,height:50}}/><Text style={s.word}>Objeo</Text></View>}
+function Brand(){return <View style={s.brand}><Image source={logo} style={{width:46,height:46}} resizeMode="contain"/><Text style={s.word}>Objeo</Text></View>}
 function Field({label,...props}){return <View style={{gap:6}}><Text style={s.label}>{label}</Text><TextInput placeholderTextColor="#737b85" style={s.input} {...props}/></View>}
 function ErrorText({value}){return value?<Text accessibilityRole="alert" style={s.error}>{value}</Text>:null}
 function Auth(){
@@ -100,6 +102,7 @@ function Personal({user}){
 function Root(){
   const [session,setSession]=useState(undefined),[role,setRole]=useState(null),[error,setError]=useState(''),[retry,setRetry]=useState(0);
   useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted)setSession(next)});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
+  useEffect(()=>{if(session!==undefined)SplashScreen.hideAsync().catch(()=>{})},[session]);
   const uid=session?.user?.id;
   useEffect(()=>{let active=true;setRole(null);setError('');if(uid){db.from('objeo_establishments').select('id').eq('owner_id',uid).limit(1).then(({data,error:e})=>{if(!active)return;if(e){setError('Impossible de vérifier le type de compte.');setRole('error')}else setRole(data?.length?'pro':'personal')}).catch(()=>{if(active){setRole('error');setError('Connexion indisponible.')}})}return()=>{active=false}},[uid,retry]);
   let content;
