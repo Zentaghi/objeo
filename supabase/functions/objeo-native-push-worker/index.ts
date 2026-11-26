@@ -12,24 +12,26 @@ async function accessToken(account:Account){
  if(!r.ok)throw Error('FCM authorization failed');
  const data=await r.json();if(!data.access_token)throw Error('FCM token missing');return data.access_token as string;
 }
-async function same(a:string,b:string){const hash=async(s:string)=>new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)));const [x,y]=await Promise.all([hash(a),hash(b)]);let z=0;for(let i=0;i<x.length;i++)z|=x[i]^y[i];return z===0}
 Deno.serve(async req=>{
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
- const secret=Deno.env.get('OBJEO_NATIVE_PUSH_WORKER_SECRET')||'';
- if(!secret||!await same(req.headers.get('x-objeo-worker-secret')||'',secret))return json({error:'Unauthorized'},401);
+ const ticket=req.headers.get('x-objeo-dispatch-ticket')||'';
+ if(!/^[a-f0-9]{64}$/.test(ticket))return json({error:'Unauthorized'},401);
+ const sb=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+ const authorization=await sb.rpc('objeo_native_consume_ticket',{p_token:ticket});
+ if(authorization.error||!['probe','dispatch'].includes(authorization.data))return json({error:'Unauthorized'},401);
  const raw=Deno.env.get('OBJEO_FCM_SERVICE_ACCOUNT_JSON');
  if(!raw)return json({error:'FCM not configured'},503);
  try{
- const account=JSON.parse(raw) as Account;if(!/^[a-z0-9-]+$/.test(account.project_id)||!account.private_key||!account.client_email)throw Error('Invalid FCM configuration');
+ const account=JSON.parse(raw) as Account;if(account.project_id!=='objeo-515101'||!account.private_key||!account.client_email)throw Error('Invalid FCM configuration');
  const access=await accessToken(account);
- const sb=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+ if(authorization.data==='probe')return json({configured:true,googleOAuth:true,project:account.project_id,probe:true});
  const {data,error}=await sb.rpc('objeo_native_claim_batch');if(error)throw error;
  let sent=0,failed=0;
- for(const row of data||[]){
+ const processRow=async(row:any)=>{
  const filter=()=>sb.from('objeo_native_push_queue').delete().eq('event_key',row.event_key).eq('token',row.token);
  try{
  const {data:device,error:de}=await sb.from('objeo_native_devices').select('user_id').eq('token',row.token).maybeSingle();if(de)throw de;
- if(!device||device.user_id!==row.user_id){await filter();continue}
+ if(!device||device.user_id!==row.user_id){await filter();return}
  const response=await fetch('https://fcm.googleapis.com/v1/projects/'+account.project_id+'/messages:send',{method:'POST',headers:{authorization:'Bearer '+access,'content-type':'application/json'},body:JSON.stringify({message:{token:row.token,notification:{title:'Objeo',body:'Vous avez une nouvelle activité sur Objeo.'},android:{priority:'normal',ttl:'3600s',notification:{channel_id:'objeo',tag:row.event_key}},data:{screen:'alerts'}}}),signal:AbortSignal.timeout(8000)});
  if(response.ok){await filter();sent++}else{
  const result=await response.json().catch(()=>({}));const codes=(result.error?.details||[]).map((d:{errorCode?:string})=>d.errorCode);
@@ -38,7 +40,8 @@ Deno.serve(async req=>{
  failed++;
  }
  }catch{failed++;if(row.attempts>=5)await filter()}
- }
+ };
+ const rows=data||[];for(let i=0;i<rows.length;i+=8)await Promise.all(rows.slice(i,i+8).map(processRow));
  await sb.from('objeo_native_push_queue').delete().lt('created_at',new Date(Date.now()-86400000).toISOString());
  return json({sent,failed});
  }catch{return json({error:'Native push worker failed'},500)}
