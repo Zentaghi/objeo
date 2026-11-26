@@ -25,7 +25,10 @@
     "expo-splash-screen": "55.0.25",
     "expo-secure-store": "55.0.18",
     "expo-constants": "55.0.17",
-    "expo-crypto": "55.0.19"
+    "expo-crypto": "55.0.19",
+    "react-native-svg": "15.15.3",
+    "qrcode": "1.5.4",
+    "expo-print": "55.0.19"
   },
   "engines": {
     "node": ">=20.19.4"

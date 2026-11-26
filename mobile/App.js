@@ -4,6 +4,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
 import { NativePersonal, NativePro } from './NativeFeatures';
 import { LegalModal } from './LegalModal';
+import { establishmentsFor } from './ProTools';
 import { authURL, handleAuthURL, googleLogin, clearGoogleSession } from './native-auth';
 import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync().catch(()=>{});
@@ -62,14 +63,14 @@ function Root(){
   useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted){setSession(next);if(_event==='PASSWORD_RECOVERY')setRecovery(true);if(_event==='SIGNED_OUT')clearGoogleSession()}});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
   useEffect(()=>{if(session!==undefined)SplashScreen.hideAsync().catch(()=>{})},[session]);
   const uid=session?.user?.id;
-  useEffect(()=>{let active=true;setRole(null);setError('');if(uid){db.from('objeo_establishments').select('id').eq('owner_id',uid).limit(1).then(({data,error:e})=>{if(!active)return;if(e){setError('Impossible de vérifier le type de compte.');setRole('error')}else setRole(data?.length?'pro':'personal')}).catch(()=>{if(active){setRole('error');setError('Connexion indisponible.')}})}return()=>{active=false}},[uid,retry]);
+  useEffect(()=>{let active=true;setRole(null);setError('');if(uid){establishmentsFor({id:uid}).then(data=>{if(active)setRole({uid,retry,kind:data.length?'pro':'personal'})}).catch(()=>{if(active){setRole({uid,retry,kind:'error'});setError('Impossible de vérifier le type de compte.')}})}return()=>{active=false}},[uid,retry]);
   let content;
-  if(session===undefined||(session&&!role&&!recovery))content=<View style={s.center}><Brand/><ActivityIndicator color={orange}/></View>;
+  if(session===undefined||(session&&(!role||role.uid!==uid||role.retry!==retry)&&!recovery))content=<View style={s.center}><Brand/><ActivityIndicator color={orange}/></View>;
   else if(!session)content=<Auth/>;
   else if(recovery)content=<ResetPassword done={()=>setRecovery(false)}/>;
-  else if(role==='error')content=<View style={s.center}><ErrorText value={error}/><Button title="Réessayer" onPress={()=>setRetry(x=>x+1)}/><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/></View>;
-  else if(role==='pro')content=<NativePro key={uid} user={session.user} Brand={Brand}/>;
-  else content=<NativePersonal key={uid} user={session.user} Brand={Brand}/>;
+  else if(role?.kind==='error')content=<View style={s.center}><ErrorText value={error}/><Button title="Réessayer" onPress={()=>setRetry(x=>x+1)}/><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/></View>;
+  else if(role?.kind==='pro')content=<NativePro key={uid} user={session.user} Brand={Brand}/>;
+  else content=<NativePersonal key={uid} user={session.user} Brand={Brand} onRoleChange={()=>setRetry(x=>x+1)}/>;
   return <SafeAreaView style={s.full}><StatusBar barStyle="dark-content"/>{linkError?<View style={{padding:12}}><ErrorText value={linkError}/><Button title="Fermer" secondary onPress={()=>setLinkError('')}/></View>:null}{content}</SafeAreaView>
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
