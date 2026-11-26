@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, TextInput, Pressable, Image, FlatList, ScrollView, StyleSheet, ActivityIndicator, StatusBar, KeyboardAvoidingView, Share, BackHandler, Linking } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
+import { NativePersonal, NativePro } from './NativeFeatures';
+import * as WebBrowser from 'expo-web-browser';
 
 const orange='#ff6e14', ink='#222b37';
 const columns='id,kind,title,category,city,happened_on,description,photo_path,status,created_at';
@@ -19,6 +21,7 @@ function Field({label,...props}){return <View style={{gap:6}}><Text style={s.lab
 function ErrorText({value}){return value?<Text accessibilityRole="alert" style={s.error}>{value}</Text>:null}
 function Auth(){
   const [mode,setMode]=useState('welcome'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  async function google(){if(busy)return;setBusy(true);setError('');try{const redirect='objeo-native-preview://auth/callback';const {data,error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirect,skipBrowserRedirect:true}});if(error)throw error;const response=await WebBrowser.openAuthSessionAsync(data.url,redirect);if(response.type==='success'){const returned=new URL(response.url);if(returned.protocol!=='objeo-native-preview:'||returned.hostname!=='auth'||returned.pathname!=='/callback')throw Error('Redirection invalide.');const params=new URLSearchParams(returned.hash.slice(1));const access_token=params.get('access_token'),refresh_token=params.get('refresh_token');if(!access_token||!refresh_token)throw Error('Connexion Google incomplète. Vérifiez la redirection Supabase.');const r=await db.auth.setSession({access_token,refresh_token});if(r.error)throw r.error}}catch(e){setError(e.message||'Connexion Google indisponible.')}finally{setBusy(false)}}
   async function submit(){
     if(busy)return;setError('');setNotice('');
     if(!email.trim()||!password||(mode==='signup'&&!name.trim())){setError('Renseignez tous les champs.');return}
@@ -39,8 +42,10 @@ function Auth(){
     <Button title={busy?'Connexion en cours…':mode==='signup'?'Créer mon compte':'Se connecter'} disabled={busy} onPress={submit}/>
     <Button title="Retour" secondary onPress={()=>{setMode('welcome');setError('');setNotice('')}}/>
     </>}
+    <Button title="Continuer avec Google" secondary disabled={busy} onPress={google}/>
+    <Button title="Mot de passe oublié" secondary disabled={busy} onPress={async()=>{if(!email.trim()){setMode('login');setError('Renseignez votre adresse e-mail.');return}try{const r=await db.auth.resetPasswordForEmail(email.trim(),{redirectTo:'https://objeo.online/'});if(r.error)throw r.error;setNotice('Consultez votre messagerie pour réinitialiser votre mot de passe.')}catch(e){setError(e.message)}}}/>
     <ErrorText value={error}/>{notice?<Text style={s.muted}>{notice}</Text>:null}
-    <Text style={s.small}>Aperçu natif • connexion Google et espace professionnel en cours de migration.</Text>
+    <Text style={s.small}>Aperçu natif • Google nécessite la validation de la redirection Supabase.</Text>
     <Pressable onPress={()=>Linking.openURL('https://objeo.online/cgu.html')}><Text style={s.link}>Conditions d’utilisation</Text></Pressable>
     <Pressable onPress={()=>Linking.openURL('https://objeo.online/confidentialite.html')}><Text style={s.link}>Confidentialité</Text></Pressable>
   </ScrollView></KeyboardAvoidingView>
@@ -101,8 +106,8 @@ function Root(){
   if(session===undefined||(session&&!role))content=<View style={s.center}><Brand/><ActivityIndicator color={orange}/></View>;
   else if(!session)content=<Auth/>;
   else if(role==='error')content=<View style={s.center}><ErrorText value={error}/><Button title="Réessayer" onPress={()=>setRetry(x=>x+1)}/><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/></View>;
-  else if(role==='pro')content=<View style={s.center}><Brand/><Text style={s.h1}>Espace professionnel</Text><Text style={s.muted}>La version native professionnelle est en préparation. Votre espace actuel reste accessible sur le site.</Text><Button title="Ouvrir Objeo Pro" onPress={()=>Linking.openURL('https://objeo.online/etablissements.html')}/><Button title="Se déconnecter" secondary onPress={()=>db.auth.signOut()}/></View>;
-  else content=<Personal key={uid} user={session.user}/>;
+  else if(role==='pro')content=<NativePro key={uid} user={session.user} Brand={Brand}/>;
+  else content=<NativePersonal key={uid} user={session.user} Brand={Brand}/>;
   return <SafeAreaView style={s.full}><StatusBar barStyle="dark-content"/>{content}</SafeAreaView>
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
