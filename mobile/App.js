@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Image, FlatList, ScrollView, StyleShe
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { db, bindRefresh, photoUrl } from './supabase';
 import { NativePersonal, NativePro } from './NativeFeatures';
-import { authURL, handleAuthURL, googleLogin } from './native-auth';
+import { authURL, handleAuthURL, googleLogin, clearGoogleSession } from './native-auth';
 import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync().catch(()=>{});
 
@@ -45,6 +45,7 @@ function Auth(){
     <Button title="Retour" secondary onPress={()=>{setMode('welcome');setError('');setNotice('')}}/>
     </>}
     <Button title="Continuer avec Google" secondary disabled={busy} onPress={google}/>
+    <Text style={s.small}>Google utilise le sélecteur de comptes Android. Si les services Google Play ne sont pas disponibles, connectez-vous par e-mail.</Text>
     <Button title="Mot de passe oublié" secondary disabled={busy} onPress={async()=>{if(!email.trim()){setMode('login');setError('Renseignez votre adresse e-mail.');return}try{const r=await db.auth.resetPasswordForEmail(email.trim(),{redirectTo:authURL('recovery')});if(r.error)throw r.error;setNotice('Consultez votre messagerie pour réinitialiser votre mot de passe.')}catch(e){setError(e.message)}}}/>
     <ErrorText value={error}/>{notice?<Text style={s.muted}>{notice}</Text>:null}
     <Text style={s.small}>Retrouvez vos objets et communiquez gratuitement avec la communauté.</Text>
@@ -56,7 +57,7 @@ function ResetPassword({done}){const [password,P]=useState(''),[confirmation,C]=
 function Root(){
   const [session,setSession]=useState(undefined),[role,setRole]=useState(null),[error,setError]=useState(''),[retry,setRetry]=useState(0),[recovery,setRecovery]=useState(false),[linkError,setLinkError]=useState('');
   useEffect(()=>{let active=true;const handle=url=>handleAuthURL(url).then(result=>{if(active&&result==='recovery')setRecovery(true)}).catch(e=>{if(active)setLinkError(e.message)});Linking.getInitialURL().then(handle).catch(()=>{});const listener=Linking.addEventListener('url',e=>handle(e.url));return()=>{active=false;listener.remove()}},[]);
-  useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted){setSession(next);if(_event==='PASSWORD_RECOVERY')setRecovery(true)}});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
+  useEffect(()=>{let mounted=true;const stop=bindRefresh();const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted){setSession(next);if(_event==='PASSWORD_RECOVERY')setRecovery(true);if(_event==='SIGNED_OUT')clearGoogleSession()}});db.auth.getSession().then(({data,error:e})=>{if(mounted){if(e)setError(e.message);setSession(data.session)}}).catch(()=>{if(mounted){setError('Session indisponible.');setSession(null)}});return()=>{mounted=false;subscription.unsubscribe();stop()}},[]);
   useEffect(()=>{if(session!==undefined)SplashScreen.hideAsync().catch(()=>{})},[session]);
   const uid=session?.user?.id;
   useEffect(()=>{let active=true;setRole(null);setError('');if(uid){db.from('objeo_establishments').select('id').eq('owner_id',uid).limit(1).then(({data,error:e})=>{if(!active)return;if(e){setError('Impossible de vérifier le type de compte.');setRole('error')}else setRole(data?.length?'pro':'personal')}).catch(()=>{if(active){setRole('error');setError('Connexion indisponible.')}})}return()=>{active=false}},[uid,retry]);

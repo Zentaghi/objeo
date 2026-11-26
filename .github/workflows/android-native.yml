@@ -44,6 +44,11 @@ jobs:
       - name: Build standalone preview APK
         working-directory: mobile/android
         run: ./gradlew :app:assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+      - name: Read APK signing certificate
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name '*.apk' -print -quit)
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | tee android-signing-certificate.txt
+          cat android-signing-certificate.txt >> "$GITHUB_STEP_SUMMARY"
       - name: Collect APK and dependency lock
         uses: actions/upload-artifact@v4
         with:
@@ -51,5 +56,6 @@ jobs:
           path: |
             mobile/android/app/build/outputs/apk/release/*.apk
             mobile/package-lock.json
+            mobile/android-signing-certificate.txt
           if-no-files-found: error
           retention-days: 7
