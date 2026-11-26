@@ -972,4 +972,24 @@ d.showModal();
 }
 window.addEventListener('load',()=>{setTimeout(offerPush,2200);try{auth2GetClient().auth.onAuthStateChange(event=>{if(event==='SIGNED_IN')setTimeout(offerPush,1200)})}catch(e){}});
 })();
-</script><script>window.addEventListener('load',()=>{const u=new URL(location.href);if(u.searchParams.get('retour')==='profil'){u.searchParams.delete('retour');history.replaceState(history.state,'',u.pathname+u.search+u.hash);openMobileProfile();}});</script><script>window.addEventListener('load',()=>{const p=new URLSearchParams(location.search);if(p.get('publier')==='perdu'&&p.get('objet'))openObjeoPublish(p.get('objet')).catch(e=>console.warn('Publication objet personnel',e));});</script></body></html>
+</script><script>window.addEventListener('load',()=>{const u=new URL(location.href);if(u.searchParams.get('retour')==='profil'){u.searchParams.delete('retour');history.replaceState(history.state,'',u.pathname+u.search+u.hash);openMobileProfile();}});</script><script>window.addEventListener('load',()=>{const p=new URLSearchParams(location.search);if(p.get('publier')==='perdu'&&p.get('objet'))openObjeoPublish(p.get('objet')).catch(e=>console.warn('Publication objet personnel',e));});</script><style>
+#objeoEntryGate{position:fixed;inset:0;z-index:2147483646;background:#fff;color:#222;display:grid;place-items:center;overflow:auto;padding:24px;box-sizing:border-box}#objeoEntryGate[hidden]{display:none}#objeoEntryGate .entry-card{width:min(100%,420px);text-align:center}#objeoEntryGate button,#objeoEntryGate .entry-pro{display:block;width:100%;box-sizing:border-box;padding:16px;margin:12px 0;border:1px solid #ddd;border-radius:12px;background:#fff;color:#222;font:inherit;text-decoration:none;cursor:pointer}#objeoEntryGate .entry-personal{background:#e85d04;color:white;border:0}#objeoEntryGate .entry-pro{color:#1755a5}#objeoEntryGate small a{color:#555}body.objeo-entry-locked{overflow:hidden!important}
+</style>
+<section id="objeoEntryGate" role="dialog" aria-modal="true" aria-label="Bienvenue sur Objeo"><div class="entry-card"><img src="/assets/logo.png" alt="Objeo" width="100" height="100" style="object-fit:contain"><h1>Bienvenue sur Objeo</h1><p>Créez votre compte gratuit pour retrouver vos objets.</p><button class="entry-personal" type="button" onclick="objeoEntryChoose('signup')">Je suis un particulier</button><a class="entry-pro" href="/etablissements.html">Je suis un professionnel</a><button type="button" onclick="objeoEntryChoose('login')">Déjà un compte ? Se connecter</button><p id="objeoEntryStatus" role="status"></p><small><a href="/cgu.html">CGU</a> · <a href="/confidentialite.html">Confidentialité</a> · <a href="/mentions-legales.html">Mentions légales</a></small></div></section>
+<script>
+(function(){
+ const gate=document.getElementById('objeoEntryGate'), auth=document.getElementById('objeoAuthV2');
+ let authenticated=false, checking=0;
+ function lock(){document.body.classList.add('objeo-entry-locked');for(const el of document.body.children){if(el!==gate&&el!==auth&&!['SCRIPT','STYLE','LINK'].includes(el.tagName))el.inert=true}}
+ function unlock(){document.body.classList.remove('objeo-entry-locked');for(const el of document.body.children){if(el!==gate&&el!==auth)el.inert=false}gate.hidden=true}
+ function show(){lock();gate.hidden=false}
+ window.objeoEntryChoose=function(mode){auth2Mode=mode;gate.hidden=true;openObjeoAuthV2()};
+ const close=window.closeObjeoAuthV2;
+ window.closeObjeoAuthV2=function(){close();if(!authenticated)show()};
+ async function check(){const seq=++checking;try{const {data,error}=await auth2GetClient().auth.getSession();if(seq!==checking)return;authenticated=!!data?.session&&!error;if(authenticated)unlock();else{lock();if(!auth.classList.contains('on'))gate.hidden=false}}catch(e){if(seq!==checking)return;authenticated=false;show();document.getElementById('objeoEntryStatus').textContent='Connexion indisponible. Réessayez en actualisant la page.'}}
+ lock();
+ try{auth2GetClient().auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION'){authenticated=!!session;if(authenticated)unlock();else if(event==='SIGNED_OUT')show();setTimeout(check,0)}})}catch(e){}
+ check();
+})();
+</script>
+</body></html>
