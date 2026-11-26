@@ -15,6 +15,8 @@ jobs:
   preview:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      OBJEO_TEST_ADS: '1'
     defaults:
       run:
         working-directory: mobile

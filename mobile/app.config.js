@@ -10,7 +10,7 @@ module.exports=({config})=>{
     const expectedPackage=release?process.env.OBJEO_PLAY_PACKAGE:config.android.package;
     if(!data.client?.some(c=>c.client_info?.android_client_info?.package_name===expectedPackage))throw Error('Le fichier Firebase ne correspond pas au package Android de ce build.');
   }
-  const appId=process.env.OBJEO_ADMOB_APP_ID, bannerId=process.env.OBJEO_ADMOB_BANNER_ID;
+  const appId=process.env.OBJEO_ADMOB_APP_ID||'ca-app-pub-4859910650106234~8616753270', bannerId=process.env.OBJEO_ADMOB_BANNER_ID||'ca-app-pub-4859910650106234/5990589931';
   const liveAds=release&&process.env.OBJEO_ENABLE_ADS==='1';
   if(liveAds&&(!/^ca-app-pub-\d+~\d+$/.test(appId||'')||!/^ca-app-pub-\d+\/\d+$/.test(bannerId||'')||appId.startsWith('ca-app-pub-3940256099942544')||bannerId.startsWith('ca-app-pub-3940256099942544')))throw Error('Identifiants AdMob de production manquants.');
   config={...config,android:{...config.android,...(firebaseFile?{googleServicesFile:firebaseFile}:{})},plugins:[...(config.plugins||[]),['expo-notifications',{color:'#ff6e14',defaultChannel:'objeo'}],['react-native-google-mobile-ads',{androidAppId:liveAds?appId:'ca-app-pub-3940256099942544~3347511713',delayAppMeasurementInit:true}]],extra:{...config.extra,pushConfigured:!!firebaseFile,adsEnabled:liveAds||(!release&&process.env.OBJEO_TEST_ADS==='1'),adBannerId:liveAds?bannerId:null}};
